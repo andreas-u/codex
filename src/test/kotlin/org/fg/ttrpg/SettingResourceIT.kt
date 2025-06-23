@@ -146,7 +146,7 @@ class SettingResourceIT {
 
     @TestTransaction
     fun verifySettings(gmId: UUID, expected: Int) {
-        val count = settingRepo.list("gm.id", gmId).size
+        val count = settingRepo.listByGm(gmId).size
         org.junit.jupiter.api.Assertions.assertEquals(expected, count)
     }
 }
