@@ -6,6 +6,7 @@ data class TemplateDTO(
     val id: UUID?,
     val name: String,
     val description: String? = null,
-    val schema: String? = null,
-    val settingId: UUID
+    val type: String,
+    val jsonSchema: String? = null,
+    val genreId: UUID
 )

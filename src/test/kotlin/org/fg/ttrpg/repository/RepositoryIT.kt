@@ -52,21 +52,30 @@ class RepositoryIT {
         val setting = Setting().apply {
             id = UUID.randomUUID()
             name = "world"
+            this.gm = gm
             genres.add(genre)
         }
         settingRepo.persist(setting)
 
+        genre.setting = setting
+
         val template = Template().apply {
             id = UUID.randomUUID()
             name = "template"
-            this.setting = setting
+            type = "npc"
+            jsonSchema = "{}"
+            this.genre = genre
         }
         templateRepo.persist(template)
 
         val settingObject = SettingObject().apply {
             id = UUID.randomUUID()
+            slug = "object-slug"
             name = "object"
+            payload = "{}"
+            tags = mutableListOf("a", "b")
             this.setting = setting
+            this.template = template
         }
         settingObjectRepo.persist(settingObject)
 
@@ -90,6 +99,7 @@ class RepositoryIT {
         gmRepo.count() shouldBe 1
         genreRepo.count() shouldBe 1
         settingRepo.count() shouldBe 1
+        settingRepo.findById(setting.id!!)?.gm?.id shouldBe gm.id
         templateRepo.count() shouldBe 1
         settingObjectRepo.count() shouldBe 1
         campaignRepo.count() shouldBe 1
