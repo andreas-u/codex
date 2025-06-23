@@ -18,4 +18,18 @@ class MergeServiceTest {
         // removed field should be null
         assertEquals(null, result.get("extra"))
     }
+
+    @Test
+    fun `merge patch merges nested objects`() {
+        val original = mapper.readTree("""{"obj":{"a":1,"b":2},"c":3}""")
+        val patch = mapper.readTree("""{"obj":{"b":null,"c":4}}""")
+        val result = service.merge(original, patch)
+
+        val obj = result.get("obj")
+        assertEquals(1, obj.get("a").asInt())
+        // b should be removed
+        assertEquals(null, obj.get("b"))
+        assertEquals(4, obj.get("c").asInt())
+        assertEquals(3, result.get("c").asInt())
+    }
 }
