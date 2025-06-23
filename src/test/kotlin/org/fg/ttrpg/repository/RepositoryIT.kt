@@ -43,19 +43,22 @@ class RepositoryIT {
         }
         gmRepo.persist(gm)
 
-        val genre = Genre().apply {
-            id = UUID.randomUUID()
-            name = "fantasy"
-        }
-        genreRepo.persist(genre)
-
         val setting = Setting().apply {
             id = UUID.randomUUID()
             name = "world"
+
             this.gm = gm
             genres.add(genre)
+
         }
         settingRepo.persist(setting)
+
+        val genre = Genre().apply {
+            id = UUID.randomUUID()
+            name = "fantasy"
+            this.setting = setting
+        }
+        genreRepo.persist(genre)
 
         val template = Template().apply {
             id = UUID.randomUUID()

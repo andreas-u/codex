@@ -16,13 +16,8 @@ CREATE TABLE setting (
 
 CREATE TABLE genre (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE setting_genre (
-    setting_id UUID NOT NULL REFERENCES setting(id),
-    genre_id UUID NOT NULL REFERENCES genre(id),
-    PRIMARY KEY (setting_id, genre_id)
+    name VARCHAR(255) NOT NULL,
+    setting_id UUID NOT NULL REFERENCES setting(id)
 );
 
 CREATE TABLE template (
