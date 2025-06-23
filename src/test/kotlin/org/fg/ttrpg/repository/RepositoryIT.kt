@@ -49,12 +49,6 @@ class RepositoryIT {
         gmRepo.persist(gm1)
         gmRepo.persist(gm2)
 
-        val genre = Genre().apply {
-            id = UUID.randomUUID()
-            name = "fantasy"
-        }
-        genreRepo.persist(genre)
-
         val setting1 = Setting().apply {
             id = UUID.randomUUID()
             name = "world1"
@@ -63,24 +57,45 @@ class RepositoryIT {
         }
         val setting2 = Setting().apply {
             id = UUID.randomUUID()
+            name = "world"
+
+            this.gm = gm
             name = "world2"
             gm = gm2
             genres.add(genre)
+
         }
         settingRepo.persist(setting1)
         settingRepo.persist(setting2)
+
+        val genre = Genre().apply {
+            id = UUID.randomUUID()
+            name = "fantasy"
+            this.setting = setting
+        }
+        genreRepo.persist(genre)
 
         val template1 = Template().apply {
             id = UUID.randomUUID()
             name = "template1"
             this.setting = setting1
             this.gm = gm1
+            name = "template"
+            type = "npc"
+            jsonSchema = "{}"
+            this.genre = genre
         }
         val template2 = Template().apply {
             id = UUID.randomUUID()
             name = "template2"
             this.setting = setting2
             this.gm = gm2
+            slug = "object-slug"
+            name = "object"
+            payload = "{}"
+            tags = mutableListOf("a", "b")
+            this.setting = setting
+            this.template = template
         }
         templateRepo.persist(template1)
         templateRepo.persist(template2)
@@ -137,6 +152,7 @@ class RepositoryIT {
         settingRepo.listByGm(gm1.id!!).size shouldBe 1
         settingRepo.listByGm(gm2.id!!).size shouldBe 1
         templateRepo.listByGm(gm1.id!!).size shouldBe 1
+        settingRepo.findById(setting.id!!)?.gm?.id shouldBe gm.id
         templateRepo.listByGm(gm2.id!!).size shouldBe 1
         settingObjectRepo.listBySettingAndGm(setting1.id!!, gm1.id!!).size shouldBe 1
         settingObjectRepo.listBySettingAndGm(setting2.id!!, gm2.id!!).size shouldBe 1

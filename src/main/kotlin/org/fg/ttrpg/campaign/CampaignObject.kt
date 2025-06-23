@@ -19,5 +19,13 @@ class CampaignObject {
     var settingObject: org.fg.ttrpg.setting.SettingObject? = null
 
     @ManyToOne
+    var template: org.fg.ttrpg.setting.Template? = null
+
+    var overrideMode: String? = null
+
+    /** JSON payload storing object data */
+    var payload: String? = null
+
+    @ManyToOne
     var gm: org.fg.ttrpg.account.GM? = null
 }
