@@ -6,7 +6,11 @@ import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import org.fg.ttrpg.common.dto.SettingDTO
 import org.fg.ttrpg.common.dto.SettingObjectDTO
+
 import org.fg.ttrpg.setting.*
+
+import org.fg.ttrpg.account.GMRepository
+
 import java.util.UUID
 
 @Path("/api/settings")
@@ -15,7 +19,11 @@ import java.util.UUID
 class SettingResource @Inject constructor(
     private val service: SettingService,
     private val objectRepo: SettingObjectRepository,
+
     private val templateRepo: TemplateRepository
+
+    private val gmRepo: GMRepository
+
 ) {
     @GET
     fun list(): List<SettingDTO> =
@@ -24,9 +32,11 @@ class SettingResource @Inject constructor(
     @POST
     @Transactional
     fun create(dto: SettingDTO): SettingDTO {
+        val gm = gmRepo.findById(dto.gmId) ?: throw NotFoundException()
         val entity = Setting().apply {
             name = dto.name
             description = dto.description
+            this.gm = gm
         }
         service.persist(entity)
         return entity.toDto()
@@ -52,7 +62,8 @@ class SettingResource @Inject constructor(
     }
 }
 
-private fun Setting.toDto() = SettingDTO(id, name ?: "", description)
+private fun Setting.toDto() =
+    SettingDTO(id, name ?: "", description, gm?.id ?: error("GM is null"))
 private fun SettingObject.toDto() =
     SettingObjectDTO(
         id,
