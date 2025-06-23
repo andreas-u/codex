@@ -1,1 +1,10 @@
-{}
+quarkus:
+  datasource:
+    db-kind: postgresql
+    username: codex
+    password: codex
+    jdbc:
+      url: jdbc:postgresql://localhost:5432/codex
+  liquibase:
+    change-log: db/changelog/db.changelog-master.yaml
+    migrate-at-start: true
