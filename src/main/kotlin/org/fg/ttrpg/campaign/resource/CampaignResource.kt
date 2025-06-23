@@ -5,6 +5,7 @@ import jakarta.inject.Inject
 import jakarta.transaction.Transactional
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
+import org.eclipse.microprofile.jwt.JsonWebToken
 import org.fg.ttrpg.campaign.Campaign
 import org.fg.ttrpg.campaign.CampaignObject
 import org.fg.ttrpg.campaign.CampaignObjectRepository
@@ -22,14 +23,16 @@ class CampaignResource @Inject constructor(
     private val service: CampaignService,
     private val objectRepo: CampaignObjectRepository,
     private val merge: MergeService,
-    private val validator: TemplateValidator
+    private val validator: TemplateValidator,
+    private val jwt: JsonWebToken
 ) {
     private val mapper = ObjectMapper()
+    private fun gmId() = UUID.fromString(jwt.getClaim("gmId"))
 
     @GET
     @Path("{id}")
     fun find(@PathParam("id") id: UUID): CampaignDTO {
-        val campaign = service.findById(id) ?: throw NotFoundException()
+        val campaign = service.findByIdForGm(id, gmId()) ?: throw NotFoundException()
         return campaign.toDto()
     }
 
@@ -41,13 +44,16 @@ class CampaignResource @Inject constructor(
         @PathParam("oid") oid: UUID,
         patch: String
     ): CampaignObjectDTO {
-        service.findById(id) ?: throw NotFoundException()
-        val obj = objectRepo.findById(oid) ?: throw NotFoundException()
-        val merged = merge.merge(mapper.writeValueAsString(obj), patch)
+        service.findByIdForGm(id, gmId()) ?: throw NotFoundException()
+        val obj = objectRepo.findByIdForGm(oid, gmId()) ?: throw NotFoundException()
+        val original = obj.payload ?: "{}"
+        val merged = merge.merge(original, patch)
         val node = mapper.readTree(merged)
-        validator.validate(obj.settingObject!!.id!!, node)
-        obj.name = node.get("name")?.asText() ?: obj.name
-        obj.description = node.get("description")?.asText()
+        val templateId = obj.template?.id ?: obj.settingObject?.id
+        if (templateId != null) {
+            validator.validate(templateId, node)
+        }
+        obj.payload = merged
         return obj.toDto()
     }
 }

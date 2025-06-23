@@ -6,9 +6,11 @@ import java.util.UUID
 
 @ApplicationScoped
 class CampaignService @Inject constructor(private val repository: CampaignRepository) {
-    fun listAll(): List<Campaign> = repository.listAll()
+    fun listAll(gmId: UUID): List<Campaign> = repository.listByGm(gmId)
 
     fun findById(id: UUID): Campaign? = repository.findById(id)
+
+    fun findByIdForGm(id: UUID, gmId: UUID): Campaign? = repository.findByIdForGm(id, gmId)
 
     fun persist(campaign: Campaign) {
         repository.persist(campaign)

@@ -4,7 +4,11 @@ import java.util.UUID
 
 data class SettingObjectDTO(
     val id: UUID?,
+    val slug: String,
     val name: String,
     val description: String? = null,
-    val settingId: UUID
+    val payload: String? = null,
+    val tags: List<String> = emptyList(),
+    val settingId: UUID,
+    val templateId: UUID? = null
 )
