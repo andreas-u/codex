@@ -44,7 +44,7 @@ class SettingResourceTest {
 
     private class StubTemplateRepo : TemplateRepository() {
         var template: Template? = null
-        override fun findById(id: UUID) = template
+        override fun findByIdForGm(id: UUID, gmId: UUID) = template
     }
 
     private val service = StubService()

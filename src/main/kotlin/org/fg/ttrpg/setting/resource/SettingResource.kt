@@ -48,7 +48,8 @@ class SettingResource @Inject constructor(
     @Transactional
     fun createObject(@PathParam("id") id: UUID, dto: SettingObjectDTO): SettingObjectDTO {
         val setting = service.findByIdForGm(id, gmId()) ?: throw NotFoundException()
-        val template = dto.templateId?.let { templateRepo.findById(it) } ?: dto.templateId?.let { throw NotFoundException() }
+        val template = dto.templateId?.let { templateRepo.findByIdForGm(it, gmId()) }
+            ?: dto.templateId?.let { throw NotFoundException() }
         val obj = SettingObject().apply {
             slug = dto.slug
             title = dto.title
