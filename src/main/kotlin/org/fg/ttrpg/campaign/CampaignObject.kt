@@ -1,6 +1,5 @@
 package org.fg.ttrpg.campaign
 
-import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntityBase
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
@@ -26,4 +25,7 @@ class CampaignObject {
 
     /** JSON payload storing object data */
     var payload: String? = null
+
+    @ManyToOne
+    var gm: org.fg.ttrpg.account.GM? = null
 }

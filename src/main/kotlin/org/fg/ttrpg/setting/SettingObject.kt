@@ -1,6 +1,5 @@
 package org.fg.ttrpg.setting
 
-import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntityBase
 import jakarta.persistence.*
 import java.util.UUID
 
@@ -22,6 +21,9 @@ class SettingObject  {
 
     @ManyToOne
     var setting: Setting? = null
+
+    @ManyToOne
+    var gm: org.fg.ttrpg.account.GM? = null
 
     @ManyToOne
     var template: Template? = null

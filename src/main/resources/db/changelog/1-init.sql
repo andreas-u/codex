@@ -11,7 +11,7 @@ CREATE TABLE setting (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    gm_id UUID REFERENCES gm(id)
+    gm_id UUID NOT NULL REFERENCES gm(id)
 );
 
 CREATE TABLE genre (
@@ -26,7 +26,8 @@ CREATE TABLE template (
     description TEXT,
     type VARCHAR(255) NOT NULL,
     json_schema JSONB,
-    genre_id UUID NOT NULL REFERENCES genre(id)
+    genre_id UUID NOT NULL REFERENCES genre(id),
+    gm_id UUID NOT NULL REFERENCES gm(id)
 );
 CREATE INDEX template_json_schema_gin_idx ON template USING GIN (json_schema);
 
@@ -37,7 +38,8 @@ CREATE TABLE setting_object (
     description TEXT,
     payload JSONB,
     template_id UUID REFERENCES template(id),
-    setting_id UUID NOT NULL REFERENCES setting(id)
+    setting_id UUID NOT NULL REFERENCES setting(id),
+    gm_id UUID NOT NULL REFERENCES gm(id)
 );
 CREATE INDEX setting_object_payload_gin_idx ON setting_object USING GIN (payload);
 
@@ -59,6 +61,7 @@ CREATE TABLE campaign_object (
     description TEXT,
     campaign_id UUID NOT NULL REFERENCES campaign(id),
     setting_object_id UUID NOT NULL REFERENCES setting_object(id),
+    gm_id UUID NOT NULL REFERENCES gm(id),
     template_id UUID REFERENCES template(id),
     override_mode VARCHAR(32),
     payload JSONB

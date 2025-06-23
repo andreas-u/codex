@@ -1,6 +1,5 @@
 package org.fg.ttrpg.setting
 
-import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntityBase
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
@@ -21,4 +20,7 @@ class Template  {
 
     @ManyToOne
     var genre: org.fg.ttrpg.genre.Genre? = null
+
+    @ManyToOne
+    var gm: org.fg.ttrpg.account.GM? = null
 }

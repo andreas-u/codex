@@ -36,22 +36,37 @@ class RepositoryIT {
     @Test
     @TestTransaction
     fun `persist and fetch entities`() {
-        val gm = GM().apply {
+        val gm1 = GM().apply {
             id = UUID.randomUUID()
             username = "gm1"
-            email = "gm@example.com"
+            email = "gm1@example.com"
         }
-        gmRepo.persist(gm)
+        val gm2 = GM().apply {
+            id = UUID.randomUUID()
+            username = "gm2"
+            email = "gm2@example.com"
+        }
+        gmRepo.persist(gm1)
+        gmRepo.persist(gm2)
 
-        val setting = Setting().apply {
+        val setting1 = Setting().apply {
+            id = UUID.randomUUID()
+            name = "world1"
+            gm = gm1
+            genres.add(genre)
+        }
+        val setting2 = Setting().apply {
             id = UUID.randomUUID()
             name = "world"
 
             this.gm = gm
+            name = "world2"
+            gm = gm2
             genres.add(genre)
 
         }
-        settingRepo.persist(setting)
+        settingRepo.persist(setting1)
+        settingRepo.persist(setting2)
 
         val genre = Genre().apply {
             id = UUID.randomUUID()
@@ -60,17 +75,21 @@ class RepositoryIT {
         }
         genreRepo.persist(genre)
 
-        val template = Template().apply {
+        val template1 = Template().apply {
             id = UUID.randomUUID()
+            name = "template1"
+            this.setting = setting1
+            this.gm = gm1
             name = "template"
             type = "npc"
             jsonSchema = "{}"
             this.genre = genre
         }
-        templateRepo.persist(template)
-
-        val settingObject = SettingObject().apply {
+        val template2 = Template().apply {
             id = UUID.randomUUID()
+            name = "template2"
+            this.setting = setting2
+            this.gm = gm2
             slug = "object-slug"
             name = "object"
             payload = "{}"
@@ -78,31 +97,67 @@ class RepositoryIT {
             this.setting = setting
             this.template = template
         }
-        settingObjectRepo.persist(settingObject)
+        templateRepo.persist(template1)
+        templateRepo.persist(template2)
 
-        val campaign = Campaign().apply {
+        val settingObject1 = SettingObject().apply {
             id = UUID.randomUUID()
-            name = "camp"
-            this.gm = gm
-            this.setting = setting
+            name = "object1"
+            this.setting = setting1
+            this.gm = gm1
         }
-        campaignRepo.persist(campaign)
-
-        val campaignObject = CampaignObject().apply {
+        val settingObject2 = SettingObject().apply {
             id = UUID.randomUUID()
-            name = "campobj"
-            this.campaign = campaign
-            this.settingObject = settingObject
+            name = "object2"
+            this.setting = setting2
+            this.gm = gm2
         }
-        campaignObjectRepo.persist(campaignObject)
+        settingObjectRepo.persist(settingObject1)
+        settingObjectRepo.persist(settingObject2)
 
-        gmRepo.count() shouldBe 1
+        val campaign1 = Campaign().apply {
+            id = UUID.randomUUID()
+            name = "camp1"
+            this.gm = gm1
+            this.setting = setting1
+        }
+        val campaign2 = Campaign().apply {
+            id = UUID.randomUUID()
+            name = "camp2"
+            this.gm = gm2
+            this.setting = setting2
+        }
+        campaignRepo.persist(campaign1)
+        campaignRepo.persist(campaign2)
+
+        val campaignObject1 = CampaignObject().apply {
+            id = UUID.randomUUID()
+            name = "campobj1"
+            this.campaign = campaign1
+            this.settingObject = settingObject1
+            this.gm = gm1
+        }
+        val campaignObject2 = CampaignObject().apply {
+            id = UUID.randomUUID()
+            name = "campobj2"
+            this.campaign = campaign2
+            this.settingObject = settingObject2
+            this.gm = gm2
+        }
+        campaignObjectRepo.persist(campaignObject1)
+        campaignObjectRepo.persist(campaignObject2)
+
+        gmRepo.count() shouldBe 2
         genreRepo.count() shouldBe 1
-        settingRepo.count() shouldBe 1
+        settingRepo.listByGm(gm1.id!!).size shouldBe 1
+        settingRepo.listByGm(gm2.id!!).size shouldBe 1
+        templateRepo.listByGm(gm1.id!!).size shouldBe 1
         settingRepo.findById(setting.id!!)?.gm?.id shouldBe gm.id
-        templateRepo.count() shouldBe 1
-        settingObjectRepo.count() shouldBe 1
-        campaignRepo.count() shouldBe 1
-        campaignObjectRepo.count() shouldBe 1
+        templateRepo.listByGm(gm2.id!!).size shouldBe 1
+        settingObjectRepo.listBySettingAndGm(setting1.id!!, gm1.id!!).size shouldBe 1
+        settingObjectRepo.listBySettingAndGm(setting2.id!!, gm2.id!!).size shouldBe 1
+        campaignRepo.listByGm(gm1.id!!).size shouldBe 1
+        campaignRepo.listByGm(gm2.id!!).size shouldBe 1
+        campaignObjectRepo.findByIdForGm(campaignObject1.id!!, gm1.id!!)!!.id shouldBe campaignObject1.id
     }
 }
