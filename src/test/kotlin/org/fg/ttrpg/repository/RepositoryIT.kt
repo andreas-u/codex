@@ -71,8 +71,12 @@ class RepositoryIT {
 
         val settingObject = SettingObject().apply {
             id = UUID.randomUUID()
+            slug = "object-slug"
             name = "object"
+            payload = "{}"
+            tags = mutableListOf("a", "b")
             this.setting = setting
+            this.template = template
         }
         settingObjectRepo.persist(settingObject)
 
