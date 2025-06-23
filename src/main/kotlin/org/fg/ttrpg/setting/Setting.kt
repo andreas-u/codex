@@ -2,11 +2,8 @@ package org.fg.ttrpg.setting
 
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
-
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
-
-
 import jakarta.persistence.OneToMany
 import java.util.UUID
 
@@ -21,10 +18,6 @@ class Setting  {
     var gm: org.fg.ttrpg.account.GM? = null
 
     @ManyToMany
-    var genres: MutableList<org.fg.ttrpg.genre.Genre> = mutableListOf()
-
-    @OneToMany(mappedBy = "setting")
-
     var genres: MutableList<org.fg.ttrpg.genre.Genre> = mutableListOf()
 
     @OneToMany(mappedBy = "setting")
