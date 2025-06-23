@@ -1,5 +1,6 @@
 package org.fg.ttrpg.setting.resource
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.inject.Inject
 import jakarta.transaction.Transactional
 import jakarta.ws.rs.*
@@ -18,9 +19,11 @@ class SettingResource @Inject constructor(
     private val service: SettingService,
     private val objectRepo: SettingObjectRepository,
     private val templateRepo: TemplateRepository,
+    private val validator: org.fg.ttrpg.infra.validation.TemplateValidator,
     private val gmRepo: GMRepository,
     private val jwt: JsonWebToken
 ) {
+    private val mapper = ObjectMapper()
     private fun gmId() = UUID.fromString(jwt.getClaim("gmId"))
 
     @GET
@@ -55,6 +58,14 @@ class SettingResource @Inject constructor(
             this.setting = setting
             this.template = template
             this.gm = setting.gm
+        }
+        template?.id?.let { tid ->
+            val node = mapper.readTree(dto.payload ?: "{}")
+            try {
+                validator.validate(tid, node)
+            } catch (e: org.fg.ttrpg.infra.validation.TemplateValidationException) {
+                throw WebApplicationException(e.message, 422)
+            }
         }
         objectRepo.persist(obj)
         return obj.toDto()
