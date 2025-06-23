@@ -8,3 +8,5 @@ quarkus:
   liquibase:
     change-log: db/changelog/db.changelog-master.yaml
     migrate-at-start: true
+  jooq:
+    dialect: POSTGRES
