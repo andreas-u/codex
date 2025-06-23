@@ -10,7 +10,8 @@ CREATE TABLE gm (
 CREATE TABLE setting (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
-    description TEXT
+    description TEXT,
+    gm_id UUID NOT NULL REFERENCES gm(id)
 );
 
 CREATE TABLE genre (
@@ -29,7 +30,8 @@ CREATE TABLE template (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     schema JSONB,
-    setting_id UUID NOT NULL REFERENCES setting(id)
+    setting_id UUID NOT NULL REFERENCES setting(id),
+    gm_id UUID NOT NULL REFERENCES gm(id)
 );
 CREATE INDEX template_schema_gin_idx ON template USING GIN (schema);
 
@@ -37,7 +39,8 @@ CREATE TABLE setting_object (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    setting_id UUID NOT NULL REFERENCES setting(id)
+    setting_id UUID NOT NULL REFERENCES setting(id),
+    gm_id UUID NOT NULL REFERENCES gm(id)
 );
 
 CREATE TABLE campaign (
@@ -52,5 +55,6 @@ CREATE TABLE campaign_object (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     campaign_id UUID NOT NULL REFERENCES campaign(id),
-    setting_object_id UUID NOT NULL REFERENCES setting_object(id)
+    setting_object_id UUID NOT NULL REFERENCES setting_object(id),
+    gm_id UUID NOT NULL REFERENCES gm(id)
 );

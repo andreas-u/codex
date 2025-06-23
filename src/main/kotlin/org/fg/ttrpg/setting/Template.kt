@@ -18,4 +18,7 @@ class Template  {
 
     @ManyToOne
     var setting: Setting? = null
+
+    @ManyToOne
+    var gm: org.fg.ttrpg.account.GM? = null
 }

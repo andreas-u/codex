@@ -5,4 +5,9 @@ import jakarta.enterprise.context.ApplicationScoped
 import java.util.UUID
 
 @ApplicationScoped
-class TemplateRepository : PanacheRepositoryBase<Template, UUID>
+class TemplateRepository : PanacheRepositoryBase<Template, UUID> {
+    fun listByGm(gmId: UUID) = list("gm.id", gmId)
+
+    fun listBySettingAndGm(settingId: UUID, gmId: UUID) =
+        list("setting.id=?1 and gm.id=?2", settingId, gmId)
+}

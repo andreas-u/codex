@@ -18,4 +18,7 @@ class CampaignObject {
 
     @ManyToOne
     var settingObject: org.fg.ttrpg.setting.SettingObject? = null
+
+    @ManyToOne
+    var gm: org.fg.ttrpg.account.GM? = null
 }
