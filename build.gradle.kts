@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.1.21"
     kotlin("plugin.allopen") version "2.1.21"
     id("io.quarkus")
+    id("nu.studer.jooq") version "9.0"
 }
 
 repositories {
@@ -12,6 +13,7 @@ repositories {
 val quarkusPlatformGroupId: String by project
 val quarkusPlatformArtifactId: String by project
 val quarkusPlatformVersion: String by project
+val jooqVersion: String by project
 
 dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
@@ -19,8 +21,8 @@ dependencies {
     implementation("io.quarkus:quarkus-rest-jackson")
     implementation("io.quarkus:quarkus-kotlin")
     implementation("io.quarkus:quarkus-config-yaml")
-    implementation("io.quarkus:quarkus-hibernate-orm-panache")
-    implementation("io.quarkus:quarkus-hibernate-orm-panache-kotlin")
+    implementation("io.quarkus:quarkus-jooq")
+    implementation("org.jooq:jooq:${jooqVersion}")
     implementation("io.quarkus:quarkus-liquibase")
     implementation("io.quarkus:quarkus-jdbc-postgresql")
     implementation("io.quarkus:quarkus-smallrye-jwt")
@@ -60,4 +62,9 @@ kotlin {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
         javaParameters = true
     }
+}
+
+jooq {
+    version.set(jooqVersion)
+    edition.set(nu.studer.gradle.jooq.JooqEdition.OSS)
 }
