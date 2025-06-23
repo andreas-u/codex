@@ -1,15 +1,18 @@
 package org.fg.ttrpg.campaign
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
+import java.time.Instant
 import java.util.UUID
 
 @Entity
 class CampaignObject {
     @Id
     var id: UUID? = null
-    var name: String? = null
+    @Column(name = "name")
+    var title: String? = null
     var description: String? = null
 
     @ManyToOne
@@ -25,6 +28,9 @@ class CampaignObject {
 
     /** JSON payload storing object data */
     var payload: String? = null
+
+    @Column(name = "created_at")
+    var createdAt: Instant? = null
 
     @ManyToOne
     var gm: org.fg.ttrpg.account.GM? = null
