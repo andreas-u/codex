@@ -10,5 +10,5 @@ class DatabaseTemplateSchemaRepository @Inject constructor(
     private val templates: TemplateRepository
 ) : TemplateSchemaRepository {
     override fun findSchema(templateId: UUID): String? =
-        templates.findById(templateId)?.schema
+        templates.findById(templateId)?.jsonSchema
 }

@@ -63,7 +63,9 @@ class RepositoryIT {
         val template = Template().apply {
             id = UUID.randomUUID()
             name = "template"
-            this.setting = setting
+            type = "npc"
+            jsonSchema = "{}"
+            this.genre = genre
         }
         templateRepo.persist(template)
 

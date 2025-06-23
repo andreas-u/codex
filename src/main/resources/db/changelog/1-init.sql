@@ -24,10 +24,11 @@ CREATE TABLE template (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    schema JSONB,
-    setting_id UUID NOT NULL REFERENCES setting(id)
+    type VARCHAR(255) NOT NULL,
+    json_schema JSONB,
+    genre_id UUID NOT NULL REFERENCES genre(id)
 );
-CREATE INDEX template_schema_gin_idx ON template USING GIN (schema);
+CREATE INDEX template_json_schema_gin_idx ON template USING GIN (json_schema);
 
 CREATE TABLE setting_object (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
