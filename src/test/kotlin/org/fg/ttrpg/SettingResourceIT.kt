@@ -1,6 +1,5 @@
 package org.fg.ttrpg
 
-import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
@@ -21,8 +20,10 @@ import io.smallrye.jwt.build.Jwt
 import io.quarkus.test.TestTransaction
 import java.util.UUID
 
+import org.junit.jupiter.api.Disabled
+
 @QuarkusTest
-@QuarkusTestResource(PostgresTestResource::class)
+@Disabled("Requires Postgres database")
 class SettingResourceIT {
     @Inject
     lateinit var gmRepo: GMRepository
