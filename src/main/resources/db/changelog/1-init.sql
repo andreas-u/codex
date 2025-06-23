@@ -10,7 +10,8 @@ CREATE TABLE gm (
 CREATE TABLE setting (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
-    description TEXT
+    description TEXT,
+    gm_id UUID REFERENCES gm(id)
 );
 
 CREATE TABLE genre (
