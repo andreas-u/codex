@@ -3,7 +3,6 @@ package org.fg.ttrpg.repository
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.TestTransaction
 import jakarta.inject.Inject
-import org.junit.jupiter.api.Disabled
 import org.fg.ttrpg.account.GM
 import org.fg.ttrpg.account.GMRepository
 import org.fg.ttrpg.setting.Setting
@@ -13,7 +12,6 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 @QuarkusTest
-@Disabled("Requires a database")
 class RepositoryIT {
     @Inject
     lateinit var gmRepo: GMRepository

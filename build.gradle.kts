@@ -24,8 +24,9 @@ dependencies {
     implementation("io.quarkus:quarkus-rest-jackson")
     implementation("io.quarkus:quarkus-kotlin")
     implementation("io.quarkus:quarkus-config-yaml")
-    implementation("io.quarkus:quarkus-jooq")
+    implementation("io.quarkiverse.jooq:quarkus-jooq:2.0.1")
     implementation("org.jooq:jooq:${jooqVersion}")
+    jooqGenerator("org.jooq:jooq-meta-extensions-liquibase:${jooqVersion}")
     implementation("io.quarkus:quarkus-liquibase")
     implementation("io.quarkus:quarkus-jdbc-postgresql")
     implementation("io.quarkus:quarkus-smallrye-jwt")
@@ -36,7 +37,6 @@ dependencies {
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("io.kotest:kotest-assertions-core:5.8.1")
-    testImplementation("io.quarkus:quarkus-jdbc-h2")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("org.hamcrest:hamcrest:2.2")
     testImplementation("org.testcontainers:postgresql:1.19.3")
@@ -75,15 +75,19 @@ jooq {
                 logging = Logging.WARN
                 generator.apply {
                     database.apply {
-                        name = "org.jooq.meta.extensions.liquibase.LiquibaseDatabase"
+                        name = "org.jooq.meta.extensions.ddl.DDLDatabase"
                         properties.addAll(listOf(
                             Property().apply {
                                 key = "scripts"
-                                value = "db.changelog-master.yaml"
+                                value = "1-init.sql,2-relationships.sql"
                             },
                             Property().apply {
                                 key = "rootPath"
                                 value = "src/main/resources/db/changelog"
+                            },
+                            Property().apply {
+                                key = "sort"
+                                value = "flyway"
                             }
                         ))
                     }
@@ -101,3 +105,4 @@ sourceSets {
         java.srcDir("${'$'}buildDir/generated-src/jooq")
     }
 }
+

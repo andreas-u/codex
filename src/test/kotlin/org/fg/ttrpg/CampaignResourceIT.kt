@@ -15,10 +15,9 @@ import io.quarkus.test.TestTransaction
 import io.smallrye.jwt.build.Jwt
 import java.util.UUID
 
-import org.junit.jupiter.api.Disabled
+
 
 @QuarkusTest
-@Disabled("Requires Postgres database")
 class CampaignResourceIT {
     @Inject
     lateinit var gmRepo: GMRepository
