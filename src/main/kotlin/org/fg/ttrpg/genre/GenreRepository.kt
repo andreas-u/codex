@@ -1,8 +1,8 @@
 package org.fg.ttrpg.genre
 
-import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepositoryBase
 import jakarta.enterprise.context.ApplicationScoped
-import java.util.UUID
+import jakarta.inject.Inject
+import org.jooq.DSLContext
 
 @ApplicationScoped
-class GenreRepository : PanacheRepositoryBase<Genre, UUID>
+class GenreRepository @Inject constructor(private val dsl: DSLContext)
