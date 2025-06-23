@@ -90,6 +90,8 @@ class RepositoryIT {
         genreRepo.count() shouldBe 1
         settingRepo.count() shouldBe 1
         templateRepo.count() shouldBe 1
+        templateRepo.listByGenre("fantasy").size shouldBe 1
+        templateRepo.listByType("template").size shouldBe 1
         settingObjectRepo.count() shouldBe 1
         campaignRepo.count() shouldBe 1
         campaignObjectRepo.count() shouldBe 1

@@ -17,11 +17,29 @@ class TemplateResource @Inject constructor(
     private val templates: TemplateRepository
 ) {
     @GET
-    fun list(@QueryParam("settingId") settingId: UUID?): List<TemplateDTO> {
-        val list = if (settingId != null) {
-            templates.list("setting.id", settingId)
-        } else {
+    fun list(
+        @QueryParam("settingId") settingId: UUID?,
+        @QueryParam("genre") genre: String?,
+        @QueryParam("type") type: String?
+    ): List<TemplateDTO> {
+        val filters = mutableListOf<String>()
+        val params = mutableListOf<Any>()
+        if (settingId != null) {
+            filters.add("setting.id = ?${'$'}{filters.size + 1}")
+            params.add(settingId)
+        }
+        if (genre != null) {
+            filters.add("setting.genres.name = ?${'$'}{filters.size + 1}")
+            params.add(genre)
+        }
+        if (type != null) {
+            filters.add("name = ?${'$'}{filters.size + 1}")
+            params.add(type)
+        }
+        val list = if (filters.isEmpty()) {
             templates.listAll()
+        } else {
+            templates.list(filters.joinToString(" and "), *params.toTypedArray())
         }
         return list.map { it.toDto() }
     }

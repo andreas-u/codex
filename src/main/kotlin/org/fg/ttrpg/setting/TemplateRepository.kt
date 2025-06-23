@@ -5,4 +5,10 @@ import jakarta.enterprise.context.ApplicationScoped
 import java.util.UUID
 
 @ApplicationScoped
-class TemplateRepository : PanacheRepositoryBase<Template, UUID>
+class TemplateRepository : PanacheRepositoryBase<Template, UUID> {
+    fun listByGenre(genre: String) =
+        list("setting.genres.name", genre)
+
+    fun listByType(type: String) =
+        list("name", type)
+}
