@@ -52,6 +52,7 @@ class RepositoryIT {
         val setting = Setting().apply {
             id = UUID.randomUUID()
             name = "world"
+            this.gm = gm
             genres.add(genre)
         }
         settingRepo.persist(setting)
@@ -89,6 +90,7 @@ class RepositoryIT {
         gmRepo.count() shouldBe 1
         genreRepo.count() shouldBe 1
         settingRepo.count() shouldBe 1
+        settingRepo.findById(setting.id!!)?.gm?.id shouldBe gm.id
         templateRepo.count() shouldBe 1
         settingObjectRepo.count() shouldBe 1
         campaignRepo.count() shouldBe 1
