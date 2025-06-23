@@ -9,6 +9,9 @@ class Template : PanacheEntity() {
     lateinit var name: String
     var description: String? = null
 
+    /** JSON schema describing objects of this template */
+    var schema: String? = null
+
     @ManyToOne
     lateinit var setting: Setting
 }
