@@ -8,4 +8,9 @@ import java.util.UUID
 class SettingObjectRepository : PanacheRepositoryBase<SettingObject, UUID> {
     fun listBySettingAndGm(settingId: UUID, gmId: UUID) =
         list("setting.id=?1 and gm.id=?2", settingId, gmId)
+
+    fun listByGm(gmId: UUID) = list("gm.id", gmId)
+
+    fun findByIdForGm(id: UUID, gmId: UUID): SettingObject? =
+        find("id=?1 and gm.id=?2", id, gmId).firstResult()
 }

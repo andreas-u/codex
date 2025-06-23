@@ -8,6 +8,9 @@ import java.util.UUID
 class TemplateRepository : PanacheRepositoryBase<Template, UUID> {
     fun listByGm(gmId: UUID) = list("gm.id", gmId)
 
+    fun findByIdForGm(id: UUID, gmId: UUID): Template? =
+        find("id=?1 and gm.id=?2", id, gmId).firstResult()
+
     fun listBySettingAndGm(settingId: UUID, gmId: UUID) =
         list("setting.id=?1 and gm.id=?2", settingId, gmId)
 
