@@ -92,7 +92,7 @@ jooq {
                         ))
                     }
                     target.apply {
-                        directory = "${'$'}buildDir/generated-src/jooq"
+                        directory = "$buildDir/generated-src/jooq"
                     }
                 }
             }
@@ -102,7 +102,7 @@ jooq {
 
 sourceSets {
     named("main") {
-        java.srcDir("${'$'}buildDir/generated-src/jooq")
+        java.srcDir("$buildDir/generated-src/jooq")
     }
 }
 
