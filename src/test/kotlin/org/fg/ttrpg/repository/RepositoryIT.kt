@@ -83,6 +83,7 @@ class RepositoryIT {
             name = "campobj"
             this.campaign = campaign
             this.settingObject = settingObject
+            this.template = template
         }
         campaignObjectRepo.persist(campaignObject)
 

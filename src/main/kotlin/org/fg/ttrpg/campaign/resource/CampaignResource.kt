@@ -45,7 +45,7 @@ class CampaignResource @Inject constructor(
         val obj = objectRepo.findById(oid) ?: throw NotFoundException()
         val merged = merge.merge(mapper.writeValueAsString(obj), patch)
         val node = mapper.readTree(merged)
-        validator.validate(obj.settingObject!!.id!!, node)
+        validator.validate(obj.template!!.id!!, node)
         obj.name = node.get("name")?.asText() ?: obj.name
         obj.description = node.get("description")?.asText()
         return obj.toDto()
