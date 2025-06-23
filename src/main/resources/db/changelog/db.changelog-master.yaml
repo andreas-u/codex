@@ -6,3 +6,10 @@ databaseChangeLog:
         - sqlFile:
             path: 1-init.sql
             relativeToChangelogFile: true
+  - changeSet:
+      id: 2-relationships
+      author: codex
+      changes:
+        - sqlFile:
+            path: 2-relationships.sql
+            relativeToChangelogFile: true
