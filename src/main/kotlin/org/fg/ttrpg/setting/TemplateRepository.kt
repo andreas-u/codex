@@ -6,6 +6,13 @@ import java.util.UUID
 
 @ApplicationScoped
 class TemplateRepository : PanacheRepositoryBase<Template, UUID> {
+    fun listByGenre(genre: String) =
+        list("setting.genres.name", genre)
+
+    fun listByType(type: String) =
+        list("name", type)
+}
+class TemplateRepository : PanacheRepositoryBase<Template, UUID> {
     fun listByGm(gmId: UUID) = list("gm.id", gmId)
 
     fun listBySettingAndGm(settingId: UUID, gmId: UUID) =

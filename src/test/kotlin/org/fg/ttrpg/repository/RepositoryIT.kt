@@ -154,6 +154,8 @@ class RepositoryIT {
         templateRepo.listByGm(gm1.id!!).size shouldBe 1
         settingRepo.findById(setting.id!!)?.gm?.id shouldBe gm.id
         templateRepo.listByGm(gm2.id!!).size shouldBe 1
+        templateRepo.listByGenre("fantasy").size shouldBe 1
+        templateRepo.listByType("template").size shouldBe 1
         settingObjectRepo.listBySettingAndGm(setting1.id!!, gm1.id!!).size shouldBe 1
         settingObjectRepo.listBySettingAndGm(setting2.id!!, gm2.id!!).size shouldBe 1
         campaignRepo.listByGm(gm1.id!!).size shouldBe 1
