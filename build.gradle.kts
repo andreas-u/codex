@@ -5,6 +5,9 @@ plugins {
     id("nu.studer.jooq") version "9.0"
 }
 
+import org.jooq.meta.jaxb.Logging
+import org.jooq.meta.jaxb.Property
+
 repositories {
     mavenCentral()
     mavenLocal()
@@ -67,4 +70,35 @@ kotlin {
 jooq {
     version.set(jooqVersion)
     edition.set(nu.studer.gradle.jooq.JooqEdition.OSS)
+    configurations {
+        create("main") {
+            jooqConfiguration.apply {
+                logging = Logging.WARN
+                generator.apply {
+                    database.apply {
+                        name = "org.jooq.meta.extensions.liquibase.LiquibaseDatabase"
+                        properties.addAll(listOf(
+                            Property().apply {
+                                key = "scripts"
+                                value = "db.changelog-master.yaml"
+                            },
+                            Property().apply {
+                                key = "rootPath"
+                                value = "src/main/resources/db/changelog"
+                            }
+                        ))
+                    }
+                    target.apply {
+                        directory = "${'$'}buildDir/generated-src/jooq"
+                    }
+                }
+            }
+        }
+    }
+}
+
+sourceSets {
+    named("main") {
+        java.srcDir("${'$'}buildDir/generated-src/jooq")
+    }
 }
