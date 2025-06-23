@@ -43,11 +43,14 @@ class CampaignResource @Inject constructor(
     ): CampaignObjectDTO {
         service.findById(id) ?: throw NotFoundException()
         val obj = objectRepo.findById(oid) ?: throw NotFoundException()
-        val merged = merge.merge(mapper.writeValueAsString(obj), patch)
+        val original = obj.payload ?: "{}"
+        val merged = merge.merge(original, patch)
         val node = mapper.readTree(merged)
-        validator.validate(obj.settingObject!!.id!!, node)
-        obj.name = node.get("name")?.asText() ?: obj.name
-        obj.description = node.get("description")?.asText()
+        val templateId = obj.template?.id ?: obj.settingObject?.id
+        if (templateId != null) {
+            validator.validate(templateId, node)
+        }
+        obj.payload = merged
         return obj.toDto()
     }
 }

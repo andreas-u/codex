@@ -58,5 +58,8 @@ CREATE TABLE campaign_object (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     campaign_id UUID NOT NULL REFERENCES campaign(id),
-    setting_object_id UUID NOT NULL REFERENCES setting_object(id)
+    setting_object_id UUID NOT NULL REFERENCES setting_object(id),
+    template_id UUID REFERENCES template(id),
+    override_mode VARCHAR(32),
+    payload JSONB
 );
