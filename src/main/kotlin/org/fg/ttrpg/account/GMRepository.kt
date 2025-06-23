@@ -1,7 +1,8 @@
 package org.fg.ttrpg.account
 
-import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepository
+import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepositoryBase
 import jakarta.enterprise.context.ApplicationScoped
+import java.util.UUID
 
 @ApplicationScoped
-class GMRepository : PanacheRepository<GM>
+class GMRepository : PanacheRepositoryBase<GM, UUID>

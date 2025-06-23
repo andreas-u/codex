@@ -29,6 +29,7 @@ dependencies {
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation("io.kotest:kotest-assertions-core:5.8.1")
 }
 
 group = "org.fg"

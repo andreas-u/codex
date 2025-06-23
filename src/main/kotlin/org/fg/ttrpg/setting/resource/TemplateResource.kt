@@ -9,6 +9,7 @@ import jakarta.ws.rs.core.MediaType
 import org.fg.ttrpg.common.dto.TemplateDTO
 import org.fg.ttrpg.setting.Template
 import org.fg.ttrpg.setting.TemplateRepository
+import java.util.UUID
 
 @Path("/api/templates")
 @Produces(MediaType.APPLICATION_JSON)
@@ -16,7 +17,7 @@ class TemplateResource @Inject constructor(
     private val templates: TemplateRepository
 ) {
     @GET
-    fun list(@QueryParam("settingId") settingId: Long?): List<TemplateDTO> {
+    fun list(@QueryParam("settingId") settingId: UUID?): List<TemplateDTO> {
         val list = if (settingId != null) {
             templates.list("setting.id", settingId)
         } else {
@@ -27,4 +28,4 @@ class TemplateResource @Inject constructor(
 }
 
 private fun Template.toDto() =
-    TemplateDTO(id, name, description, schema, setting.id!!)
+    TemplateDTO(id, name ?: "", description, schema, setting?.id ?: error("Setting is null"))

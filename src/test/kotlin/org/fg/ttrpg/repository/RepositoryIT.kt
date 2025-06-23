@@ -12,8 +12,9 @@ import org.fg.ttrpg.campaign.CampaignRepository
 import org.fg.ttrpg.genre.Genre
 import org.fg.ttrpg.genre.GenreRepository
 import org.fg.ttrpg.setting.*
-import org.junit.jupiter.api.Assertions.assertEquals
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 @QuarkusTest
 class RepositoryIT {
@@ -36,33 +37,41 @@ class RepositoryIT {
     @TestTransaction
     fun `persist and fetch entities`() {
         val gm = GM().apply {
+            id = UUID.randomUUID()
             username = "gm1"
             email = "gm@example.com"
         }
         gmRepo.persist(gm)
 
-        val genre = Genre().apply { name = "fantasy" }
+        val genre = Genre().apply {
+            id = UUID.randomUUID()
+            name = "fantasy"
+        }
         genreRepo.persist(genre)
 
         val setting = Setting().apply {
+            id = UUID.randomUUID()
             name = "world"
             genres.add(genre)
         }
         settingRepo.persist(setting)
 
         val template = Template().apply {
+            id = UUID.randomUUID()
             name = "template"
             this.setting = setting
         }
         templateRepo.persist(template)
 
         val settingObject = SettingObject().apply {
+            id = UUID.randomUUID()
             name = "object"
             this.setting = setting
         }
         settingObjectRepo.persist(settingObject)
 
         val campaign = Campaign().apply {
+            id = UUID.randomUUID()
             name = "camp"
             this.gm = gm
             this.setting = setting
@@ -70,18 +79,19 @@ class RepositoryIT {
         campaignRepo.persist(campaign)
 
         val campaignObject = CampaignObject().apply {
+            id = UUID.randomUUID()
             name = "campobj"
             this.campaign = campaign
             this.settingObject = settingObject
         }
         campaignObjectRepo.persist(campaignObject)
 
-        assertEquals(1, gmRepo.count())
-        assertEquals(1, genreRepo.count())
-        assertEquals(1, settingRepo.count())
-        assertEquals(1, templateRepo.count())
-        assertEquals(1, settingObjectRepo.count())
-        assertEquals(1, campaignRepo.count())
-        assertEquals(1, campaignObjectRepo.count())
+        gmRepo.count() shouldBe 1
+        genreRepo.count() shouldBe 1
+        settingRepo.count() shouldBe 1
+        templateRepo.count() shouldBe 1
+        settingObjectRepo.count() shouldBe 1
+        campaignRepo.count() shouldBe 1
+        campaignObjectRepo.count() shouldBe 1
     }
 }

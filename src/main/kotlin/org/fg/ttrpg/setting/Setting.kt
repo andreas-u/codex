@@ -1,13 +1,17 @@
 package org.fg.ttrpg.setting
 
-import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntity
+import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntityBase
 import jakarta.persistence.Entity
+import jakarta.persistence.Id
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.OneToMany
+import java.util.UUID
 
 @Entity
-class Setting : PanacheEntity() {
-    lateinit var name: String
+class Setting  {
+    @Id
+    var id: UUID? = null
+    var name: String? = null
     var description: String? = null
 
     @ManyToMany

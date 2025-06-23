@@ -13,6 +13,7 @@ import org.fg.ttrpg.common.dto.CampaignDTO
 import org.fg.ttrpg.common.dto.CampaignObjectDTO
 import org.fg.ttrpg.infra.merge.MergeService
 import org.fg.ttrpg.infra.validation.TemplateValidator
+import java.util.UUID
 
 @Path("/api/campaigns")
 @Produces(MediaType.APPLICATION_JSON)
@@ -27,7 +28,7 @@ class CampaignResource @Inject constructor(
 
     @GET
     @Path("{id}")
-    fun find(@PathParam("id") id: Long): CampaignDTO {
+    fun find(@PathParam("id") id: UUID): CampaignDTO {
         val campaign = service.findById(id) ?: throw NotFoundException()
         return campaign.toDto()
     }
@@ -36,21 +37,21 @@ class CampaignResource @Inject constructor(
     @Path("{id}/objects/{oid}")
     @Transactional
     fun patchObject(
-        @PathParam("id") id: Long,
-        @PathParam("oid") oid: Long,
+        @PathParam("id") id: UUID,
+        @PathParam("oid") oid: UUID,
         patch: String
     ): CampaignObjectDTO {
         service.findById(id) ?: throw NotFoundException()
         val obj = objectRepo.findById(oid) ?: throw NotFoundException()
         val merged = merge.merge(mapper.writeValueAsString(obj), patch)
         val node = mapper.readTree(merged)
-        validator.validate(obj.settingObject.id!!, node)
+        validator.validate(obj.settingObject!!.id!!, node)
         obj.name = node.get("name")?.asText() ?: obj.name
         obj.description = node.get("description")?.asText()
         return obj.toDto()
     }
 }
 
-private fun Campaign.toDto() = CampaignDTO(id, name, gm.id!!, setting.id!!)
+private fun Campaign.toDto() = CampaignDTO(id, name ?: "", gm?.id ?: error("GM is null"), setting?.id ?: error("Setting is null"))
 private fun CampaignObject.toDto() =
-    CampaignObjectDTO(id, name, description, campaign.id!!, settingObject.id!!)
+    CampaignObjectDTO(id, name ?: "", description, campaign?.id ?: error("Campaign is null"), settingObject?.id ?: error("SettingObject is null"))

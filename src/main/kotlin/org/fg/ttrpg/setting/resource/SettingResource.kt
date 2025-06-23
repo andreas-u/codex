@@ -10,6 +10,7 @@ import org.fg.ttrpg.setting.Setting
 import org.fg.ttrpg.setting.SettingObject
 import org.fg.ttrpg.setting.SettingObjectRepository
 import org.fg.ttrpg.setting.SettingService
+import java.util.UUID
 
 @Path("/api/settings")
 @Produces(MediaType.APPLICATION_JSON)
@@ -36,7 +37,7 @@ class SettingResource @Inject constructor(
     @POST
     @Path("{id}/objects")
     @Transactional
-    fun createObject(@PathParam("id") id: Long, dto: SettingObjectDTO): SettingObjectDTO {
+    fun createObject(@PathParam("id") id: UUID, dto: SettingObjectDTO): SettingObjectDTO {
         val setting = service.findById(id) ?: throw NotFoundException()
         val obj = SettingObject().apply {
             name = dto.name
@@ -48,6 +49,6 @@ class SettingResource @Inject constructor(
     }
 }
 
-private fun Setting.toDto() = SettingDTO(id, name, description)
+private fun Setting.toDto() = SettingDTO(id, name ?: "", description)
 private fun SettingObject.toDto() =
-    SettingObjectDTO(id, name, description, setting.id!!)
+    SettingObjectDTO(id, name ?: "", description, setting?.id ?: error("Setting is null"))

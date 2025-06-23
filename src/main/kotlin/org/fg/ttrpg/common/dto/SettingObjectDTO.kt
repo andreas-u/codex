@@ -1,8 +1,10 @@
 package org.fg.ttrpg.common.dto
 
+import java.util.UUID
+
 data class SettingObjectDTO(
-    val id: Long?,
+    val id: UUID?,
     val name: String,
     val description: String? = null,
-    val settingId: Long
+    val settingId: UUID
 )

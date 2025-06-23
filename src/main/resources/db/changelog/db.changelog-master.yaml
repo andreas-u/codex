@@ -4,5 +4,5 @@ databaseChangeLog:
       author: codex
       changes:
         - sqlFile:
-            path: db/changelog/1-init.sql
+            path: 1-init.sql
             relativeToChangelogFile: true

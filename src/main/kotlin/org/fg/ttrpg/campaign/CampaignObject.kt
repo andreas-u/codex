@@ -1,17 +1,21 @@
 package org.fg.ttrpg.campaign
 
-import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntity
+import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntityBase
 import jakarta.persistence.Entity
+import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
+import java.util.UUID
 
 @Entity
-class CampaignObject : PanacheEntity() {
-    lateinit var name: String
+class CampaignObject {
+    @Id
+    var id: UUID? = null
+    var name: String? = null
     var description: String? = null
 
     @ManyToOne
-    lateinit var campaign: Campaign
+    var campaign: Campaign? = null
 
     @ManyToOne
-    lateinit var settingObject: org.fg.ttrpg.setting.SettingObject
+    var settingObject: org.fg.ttrpg.setting.SettingObject? = null
 }

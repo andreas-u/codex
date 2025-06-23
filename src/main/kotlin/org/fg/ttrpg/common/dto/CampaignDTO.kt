@@ -1,8 +1,10 @@
 package org.fg.ttrpg.common.dto
 
+import java.util.UUID
+
 data class CampaignDTO(
-    val id: Long?,
+    val id: UUID?,
     val name: String,
-    val gmId: Long,
-    val settingId: Long
+    val gmId: UUID,
+    val settingId: UUID
 )

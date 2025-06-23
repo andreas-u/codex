@@ -1,8 +1,8 @@
 quarkus:
   datasource:
     db-kind: postgresql
-    username: codex
-    password: codex
+    username: postgres
+    password: postgres
     jdbc:
       url: jdbc:postgresql://localhost:5432/codex
   liquibase:

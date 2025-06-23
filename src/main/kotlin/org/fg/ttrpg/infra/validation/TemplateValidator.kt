@@ -8,6 +8,7 @@ import com.networknt.schema.SpecVersion
 import com.networknt.schema.ValidationMessage
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
+import java.util.UUID
 
 /**
  * Validates payloads against template JSON Schema documents using a small LRU cache.
@@ -23,12 +24,12 @@ class TemplateValidator @Inject constructor(
     private val mapper = ObjectMapper()
     private val factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012)
 
-    private val cache = object : LinkedHashMap<Long, JsonSchema>(CACHE_SIZE, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, JsonSchema>?) =
+    private val cache = object : LinkedHashMap<UUID, JsonSchema>(CACHE_SIZE, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<UUID, JsonSchema>?) =
             size > CACHE_SIZE
     }
 
-    fun validate(templateId: Long, payload: JsonNode) {
+    fun validate(templateId: UUID, payload: JsonNode) {
         val schema = cache.computeIfAbsent(templateId) {
             val schemaText = repository.findSchema(templateId)
                 ?: throw IllegalArgumentException("Schema not found for template $templateId")
