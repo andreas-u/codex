@@ -32,6 +32,9 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("io.kotest:kotest-assertions-core:5.8.1")
     testImplementation("io.quarkus:quarkus-jdbc-h2")
+    testImplementation("io.rest-assured:rest-assured")
+    testImplementation("org.hamcrest:hamcrest:2.2")
+    testImplementation("org.testcontainers:postgresql:1.19.3")
 }
 
 group = "org.fg"
