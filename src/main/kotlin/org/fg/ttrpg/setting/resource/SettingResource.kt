@@ -32,7 +32,7 @@ class SettingResource @Inject constructor(
     fun create(dto: SettingDTO): SettingDTO {
         val gm = gmRepo.findById(gmId()) ?: throw NotFoundException()
         val entity = Setting().apply {
-            name = dto.name
+            title = dto.title
             description = dto.description
             this.gm = gm
         }
@@ -48,7 +48,7 @@ class SettingResource @Inject constructor(
         val template = dto.templateId?.let { templateRepo.findById(it) } ?: dto.templateId?.let { throw NotFoundException() }
         val obj = SettingObject().apply {
             slug = dto.slug
-            name = dto.name
+            title = dto.title
             description = dto.description
             payload = dto.payload
             tags = dto.tags.toMutableList()
@@ -62,13 +62,13 @@ class SettingResource @Inject constructor(
 }
 
 private fun Setting.toDto() =
-    SettingDTO(id, name ?: "", description, gm?.id ?: error("GM is null"))
+    SettingDTO(id, title ?: "", description, gm?.id ?: error("GM is null"))
 
 private fun SettingObject.toDto() =
     SettingObjectDTO(
         id,
         slug ?: "",
-        name ?: "",
+        title ?: "",
         description,
         payload,
         tags.toList(),

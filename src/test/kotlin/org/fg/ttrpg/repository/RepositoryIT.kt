@@ -30,7 +30,7 @@ class RepositoryIT {
 
         val setting = Setting().apply {
             id = UUID.randomUUID()
-            name = "world"
+            title = "world"
             this.gm = gm
         }
         settingRepo.persist(setting)

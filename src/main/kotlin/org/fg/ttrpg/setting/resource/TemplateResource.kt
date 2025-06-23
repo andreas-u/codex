@@ -39,7 +39,7 @@ class TemplateResource @Inject constructor(
 private fun Template.toDto() =
     TemplateDTO(
         id,
-        name ?: "",
+        title ?: "",
         description,
         type ?: "",
         jsonSchema,
