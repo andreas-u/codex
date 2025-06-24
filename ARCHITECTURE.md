@@ -200,9 +200,9 @@ Merge rules live in `infra.merge` and may evolve from RFC 7396 *Merge Patch* to
 
 ## 14  Calendars & Timelines
 
-> **Planned extension:** Calendars and timeline features are not yet
-> implemented in this repository. This section sketches the intended
-> design for future work.
+Calendar and timeline support lets GMs attach events to a Setting and
+adapt them per Campaign.  The APIs below are available in the current
+service.
 
 A dedicated chronological layer lets GMs plot historical lore, schedule future sessions, and track campaign days without leaking calendar logic into object payloads. The design mirrors the **canon‑vs‑override** strategy already used for Setting & Campaign objects.
 
@@ -223,15 +223,62 @@ A dedicated chronological layer lets GMs plot historical lore, schedule future s
 * **Campaign scope:** Every Campaign selects *one primary* CalendarSystem but may reference others for lore translation.
 * **Objects ↔ Events:** `TimelineEvent.objectRefs` holds FK list to `setting_object.id`; a join view answers “show every object that appears in timeline Q4” queries.
 
-### 14.3  API additions (sketch)
+### 14.3  API endpoints
 
 | Method                                            | URI                                 | Notes |
 | ------------------------------------------------- | ----------------------------------- | ----- |
-| `POST /api/settings/{id}/calendars`               | Create calendar system              |       |
-| `GET /api/calendars/{id}`                         | Calendar metadata & month structure |       |
-| `POST /api/calendars/{id}/events`                 | Add world‑level event               |       |
-| `PATCH /api/campaigns/{cid}/events/{eid}`         | Override or delete in campaign      |       |
-| `GET /api/campaigns/{cid}/timeline?from=0&to=365` | Merged event list for range         |       |
+| `POST /api/settings/{id}/calendars`               | Create calendar system              | JSON body `CalendarDTO` |
+| `GET /api/calendars/{id}`                         | Calendar metadata & month structure | |
+| `POST /api/calendars/{id}/events`                 | Add world‑level event               | JSON body `TimelineEventDTO` |
+| `PATCH /api/campaigns/{cid}/events/{eid}`         | Override or delete in campaign      | JSON body `CampaignEventOverrideDTO` |
+| `GET /api/campaigns/{cid}/timeline?from=0&to=365` | Merged event list for range         | |
+
+#### DTO Schemas
+
+```json
+// CalendarDTO
+{
+  "type": "object",
+  "properties": {
+    "id": {"type": "string", "format": "uuid"},
+    "name": {"type": "string"},
+    "epochLabel": {"type": "string"},
+    "months": {"type": "string"},
+    "leapRule": {"type": "string"},
+    "settingId": {"type": "string", "format": "uuid"}
+  },
+  "required": ["name", "settingId"]
+}
+
+// TimelineEventDTO
+{
+  "type": "object",
+  "properties": {
+    "id": {"type": "string", "format": "uuid"},
+    "calendarId": {"type": "string", "format": "uuid"},
+    "title": {"type": "string"},
+    "description": {"type": "string"},
+    "startDay": {"type": "integer"},
+    "endDay": {"type": "integer"},
+    "objectRefs": {"type": "array", "items": {"type": "string", "format": "uuid"}},
+    "tags": {"type": "array", "items": {"type": "string"}}
+  },
+  "required": ["calendarId", "title", "startDay"]
+}
+
+// CampaignEventOverrideDTO
+{
+  "type": "object",
+  "properties": {
+    "id": {"type": "string", "format": "uuid"},
+    "campaignId": {"type": "string", "format": "uuid"},
+    "baseEventId": {"type": "string", "format": "uuid"},
+    "overrideMode": {"type": "string"},
+    "payload": {"type": "string"}
+  },
+  "required": ["campaignId", "overrideMode"]
+}
+```
 
 ### 14.4  Storage & indexing
 
