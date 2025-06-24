@@ -9,11 +9,11 @@ import org.fg.ttrpg.calendar.CalendarService
 import org.fg.ttrpg.calendar.CalendarSystem
 import org.fg.ttrpg.common.dto.CalendarDTO
 import org.fg.ttrpg.common.dto.TimelineEventDTO
+import org.fg.ttrpg.setting.SettingObject
 import org.fg.ttrpg.setting.SettingService
 import org.fg.ttrpg.timeline.TimelineEvent
 import org.fg.ttrpg.timeline.TimelineService
-import org.fg.ttrpg.setting.SettingObject
-import java.util.UUID
+import java.util.*
 
 @Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
@@ -26,21 +26,6 @@ class CalendarResource @Inject constructor(
 ) {
     private fun gmId() = UUID.fromString(jwt.getClaim("gmId"))
 
-    @POST
-    @Path("/settings/{id}/calendars")
-    @Transactional
-    fun createCalendar(@PathParam("id") settingId: UUID, dto: CalendarDTO): CalendarDTO {
-        val setting = settingService.findByIdForGm(settingId, gmId()) ?: throw NotFoundException()
-        val system = CalendarSystem().apply {
-            name = dto.name
-            epochLabel = dto.epochLabel
-            months = dto.months
-            leapRule = dto.leapRule
-            this.setting = setting
-        }
-        calendarService.persist(system)
-        return system.toDto()
-    }
 
     @GET
     @Path("/calendars/{id}")
@@ -72,7 +57,7 @@ class CalendarResource @Inject constructor(
     }
 }
 
-private fun CalendarSystem.toDto() = CalendarDTO(
+fun CalendarSystem.toDto() = CalendarDTO(
     id,
     name ?: "",
     epochLabel,
@@ -81,7 +66,7 @@ private fun CalendarSystem.toDto() = CalendarDTO(
     setting?.id ?: error("Setting is null"),
 )
 
-private fun TimelineEvent.toDto() = TimelineEventDTO(
+fun TimelineEvent.toDto() = TimelineEventDTO(
     id,
     calendar?.id ?: error("Calendar is null"),
     title ?: "",

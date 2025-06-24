@@ -189,12 +189,12 @@ class CampaignEventResourceIT {
                 )
             )
             .`when`().patch("/api/campaigns/${camp.id}/events/$eventId")
-            .then().statusCode(404)
+            .then().log().body().statusCode(204)
 
         given()
             .`when`().get("/api/campaigns/${camp.id}/timeline")
             .then().statusCode(200)
+            .log().body() // Log the response body for debugging
             .body("size()", equalTo(0))
     }
 }
-

@@ -24,8 +24,8 @@ class CampaignEventService @Inject constructor(
     fun findByCampaignAndEvent(campaignId: UUID, eventId: UUID): CampaignEventOverride? =
         repository.findByCampaignAndEvent(campaignId, eventId)
 
-    fun persist(override: CampaignEventOverride) {
-        repository.persist(override)
+    fun persist(override: CampaignEventOverride): Int? {
+        return repository.persist(override)
     }
 
     fun update(override: CampaignEventOverride) {

@@ -7,10 +7,14 @@ import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import org.eclipse.microprofile.jwt.JsonWebToken
 import org.fg.ttrpg.account.GMRepository
+import org.fg.ttrpg.calendar.CalendarService
+import org.fg.ttrpg.calendar.CalendarSystem
+import org.fg.ttrpg.calendar.resource.toDto
+import org.fg.ttrpg.common.dto.CalendarDTO
 import org.fg.ttrpg.common.dto.SettingDTO
 import org.fg.ttrpg.common.dto.SettingObjectDTO
 import org.fg.ttrpg.setting.*
-import java.util.UUID
+import java.util.*
 
 @Path("/api/settings")
 @Produces(MediaType.APPLICATION_JSON)
@@ -21,6 +25,7 @@ class SettingResource @Inject constructor(
     private val templateRepo: TemplateRepository,
     private val validator: org.fg.ttrpg.infra.validation.TemplateValidator,
     private val gmRepo: GMRepository,
+    private val calendarService: CalendarService,
     private val jwt: JsonWebToken
 ) {
     private val mapper = ObjectMapper()
@@ -77,6 +82,23 @@ class SettingResource @Inject constructor(
         }
         objectRepo.persist(obj)
         return obj.toDto()
+    }
+
+
+    @POST
+    @Path("{id}/calendars")
+    @Transactional
+    fun createCalendar(@PathParam("id") settingId: UUID, dto: CalendarDTO): CalendarDTO {
+        val setting = service.findByIdForGm(settingId, gmId()) ?: throw NotFoundException()
+        val system = CalendarSystem().apply {
+            name = dto.name
+            epochLabel = dto.epochLabel
+            months = dto.months
+            leapRule = dto.leapRule
+            this.setting = setting
+        }
+        calendarService.persist(system)
+        return system.toDto()
     }
 }
 

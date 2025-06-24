@@ -37,7 +37,7 @@ class CampaignEventResource @Inject constructor(
         @PathParam("cid") cid: UUID,
         @PathParam("eid") eid: UUID,
         dto: CampaignEventOverrideDTO,
-    ): TimelineEventDTO {
+    ): TimelineEventDTO? {
         val campaign = campaignService.findByIdForGm(cid, gmId()) ?: throw NotFoundException()
         val base = timelineService.findById(eid) ?: throw NotFoundException()
         var override = eventService.findByCampaignAndEvent(cid, eid)
@@ -47,14 +47,17 @@ class CampaignEventResource @Inject constructor(
                 this.campaign = campaign
                 this.baseEvent = base
                 createdAt = Instant.now()
+                overrideMode = OverrideMode.valueOf(dto.overrideMode)
+                payload = dto.payload
             }
             eventService.persist(override)
+        } else {
+            override.overrideMode = OverrideMode.valueOf(dto.overrideMode)
+            override.payload = dto.payload
+            eventService.update(override)
         }
-        override.overrideMode = OverrideMode.valueOf(dto.overrideMode)
-        override.payload = dto.payload
-        eventService.update(override)
-        val result = eventService.applyOverride(base, override) ?: throw NotFoundException()
-        return result.toDto()
+        val result = eventService.applyOverride(base, override)
+        return result?.toDto()
     }
 
     @GET

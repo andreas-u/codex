@@ -32,8 +32,8 @@ class CampaignEventOverrideRepository @Inject constructor(private val jdbi: Jdbi
                 .orElse(null)
         }
 
-    fun persist(override: CampaignEventOverride) {
-        jdbi.useHandle<Exception> { handle ->
+    fun persist(override: CampaignEventOverride): Int? {
+        return jdbi.withHandle<Int,Exception> { handle ->
             handle.createUpdate(
                 "INSERT INTO campaign_event_override (id, campaign_id, base_event_id, override_mode, payload, created_at) VALUES (:id, :campaignId, :baseEventId, :overrideMode, :payload::jsonb, :createdAt)"
             )
