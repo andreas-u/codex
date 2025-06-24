@@ -30,6 +30,13 @@ class SettingResource @Inject constructor(
     fun list(): List<SettingDTO> =
         service.listAll(gmId()).map { it.toDto() }
 
+    @GET
+    @Path("{id}")
+    fun getById(@PathParam("id") id: UUID): SettingDTO {
+        val setting = service.findByIdForGm(id, gmId()) ?: throw NotFoundException()
+        return setting.toDto()
+    }
+
     @POST
     @Transactional
     fun create(dto: SettingDTO): SettingDTO {

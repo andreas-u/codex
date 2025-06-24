@@ -134,6 +134,27 @@ class SettingResourceIT {
             Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
         ]
     )
+    fun find_setting_by_id() {
+        val gmId = testGmId1
+        val settingId = UUID.randomUUID()
+        createSetting(settingId, gmId)
+        given()
+            .`when`().get("/api/settings/$settingId")
+            .then().statusCode(200)
+            .body("title", equalTo("world"))
+
+        verifySettings(gmId, 1)
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt", roles = ["viewer"])
+    @JwtSecurity(
+        claims = [
+            Claim(key = "email", value = "user@gmail.com"),
+            Claim(key = "sub", value = "userJwt"),
+            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+        ]
+    )
     fun createObject_validationFailure() {
         val gmId = testGmId1
         val settingId = UUID.randomUUID()
