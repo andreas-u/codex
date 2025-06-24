@@ -16,7 +16,7 @@ class CampaignRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun listByGm(gmId: UUID): List<Campaign> =
         jdbi.withHandle<List<Campaign>, Exception> { handle ->
-            handle.createQuery("SELECT id, title, started_on, gm_id, setting_id FROM campaign WHERE gm_id = :gmId")
+            handle.createQuery("SELECT id, name, started_on, gm_id, setting_id FROM campaign WHERE gm_id = :gmId")
                 .bind("gmId", gmId)
                 .map(CampaignMapper())
                 .list()
