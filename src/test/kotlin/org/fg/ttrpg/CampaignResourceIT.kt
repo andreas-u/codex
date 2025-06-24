@@ -16,6 +16,7 @@ import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import jakarta.transaction.Transactional
+import io.kotest.matchers.shouldBe
 import java.util.*
 
 
@@ -273,6 +274,6 @@ class CampaignResourceIT : IntegrationTestHelper() {
     @Transactional
     fun verifyPayload(id: UUID, expected: String) {
         val obj = campaignObjectRepo.findById(id)
-        org.junit.jupiter.api.Assertions.assertEquals(expected, obj!!.payload)
+        obj!!.payload shouldBe expected
     }
 }

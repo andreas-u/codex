@@ -15,6 +15,7 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import io.kotest.matchers.shouldBe
 import org.fg.ttrpg.testutils.IntegrationTestHelper
 import java.util.*
 
@@ -180,17 +181,17 @@ class SettingResourceIT : IntegrationTestHelper() {
     @TestTransaction
     fun verifySettings(gmId: UUID, expected: Int) {
         val count = settingRepo.listByGm(gmId).size
-        org.junit.jupiter.api.Assertions.assertEquals(expected, count)
+        count shouldBe expected
     }
 
     @TestTransaction
     fun verifyObject(settingId: UUID, gmId: UUID, templateId: UUID) {
         val objs = objectRepo.listBySettingAndGm(settingId, gmId)
-        org.junit.jupiter.api.Assertions.assertEquals(1, objs.size)
+        objs.size shouldBe 1
         val obj = objs.first()
-        org.junit.jupiter.api.Assertions.assertEquals("slug", obj.slug)
-        org.junit.jupiter.api.Assertions.assertEquals("Title", obj.title)
-        org.junit.jupiter.api.Assertions.assertEquals("{\"name\": \"obj\"}", obj.payload)
-        org.junit.jupiter.api.Assertions.assertEquals(templateId, obj.template?.id)
+        obj.slug shouldBe "slug"
+        obj.title shouldBe "Title"
+        obj.payload shouldBe "{\"name\": \"obj\"}"
+        obj.template?.id shouldBe templateId
     }
 }

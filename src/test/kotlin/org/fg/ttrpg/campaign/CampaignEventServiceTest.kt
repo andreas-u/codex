@@ -5,7 +5,9 @@ import io.mockk.every
 import io.mockk.mockk
 import org.fg.ttrpg.infra.merge.MergeService
 import org.fg.ttrpg.timeline.TimelineEvent
-import org.junit.jupiter.api.Assertions.*
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.nulls.shouldBeNull
 import org.junit.jupiter.api.Test
 import java.util.*
 
@@ -19,7 +21,7 @@ class CampaignEventServiceTest {
     fun `list should return all overrides`() {
         val overrides = listOf(CampaignEventOverride())
         every { repository.list() } returns overrides
-        assertEquals(overrides, service.list())
+        service.list() shouldBe overrides
     }
 
     @Test
@@ -27,7 +29,7 @@ class CampaignEventServiceTest {
         val id = UUID.randomUUID()
         val override = CampaignEventOverride().apply { this.id = id }
         every { repository.findById(id) } returns override
-        assertEquals(override, service.findById(id))
+        service.findById(id) shouldBe override
     }
 
     @Test
@@ -35,7 +37,7 @@ class CampaignEventServiceTest {
         val campaignId = UUID.randomUUID()
         val overrides = listOf(CampaignEventOverride())
         every { repository.listByCampaign(campaignId) } returns overrides
-        assertEquals(overrides, service.listByCampaign(campaignId))
+        service.listByCampaign(campaignId) shouldBe overrides
     }
 
     @Test
@@ -44,14 +46,14 @@ class CampaignEventServiceTest {
         val eventId = UUID.randomUUID()
         val override = CampaignEventOverride()
         every { repository.findByCampaignAndEvent(campaignId, eventId) } returns override
-        assertEquals(override, service.findByCampaignAndEvent(campaignId, eventId))
+        service.findByCampaignAndEvent(campaignId, eventId) shouldBe override
     }
 
     @Test
     fun `persist should call repository persist`() {
         val override = CampaignEventOverride()
         every { repository.persist(override) } returns 1
-        assertEquals(1, service.persist(override))
+        service.persist(override) shouldBe 1
     }
 
     @Test
@@ -72,7 +74,7 @@ class CampaignEventServiceTest {
     fun `applyOverride should return null for DELETE`() {
         val base = TimelineEvent().apply { id = UUID.randomUUID() }
         val override = CampaignEventOverride().apply { overrideMode = OverrideMode.DELETE }
-        assertNull(service.applyOverride(base, override))
+        service.applyOverride(base, override).shouldBeNull()
     }
 
     @Test
@@ -85,8 +87,8 @@ class CampaignEventServiceTest {
             this.payload = payload
         }
         val result = service.applyOverride(base, override)
-        assertNotNull(result)
-        assertEquals(base.id, result?.id)
+        result shouldNotBe null
+        result?.id shouldBe base.id
     }
 
     @Test
@@ -98,8 +100,8 @@ class CampaignEventServiceTest {
         }
         every { merge.merge(any<String>(), any<String>()) } returns "{\"id\":\"${base.id}\",\"title\":\"new\"}"
         val result = service.applyOverride(base, override)
-        assertNotNull(result)
-        assertEquals("new", result?.title)
+        result shouldNotBe null
+        result?.title shouldBe "new"
     }
 
     @Test
@@ -107,6 +109,6 @@ class CampaignEventServiceTest {
         val base = TimelineEvent().apply { id = UUID.randomUUID() }
         val override = CampaignEventOverride().apply { overrideMode = null }
         val result = service.applyOverride(base, override)
-        assertEquals(base, result)
+        result shouldBe base
     }
 }

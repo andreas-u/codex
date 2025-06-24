@@ -2,7 +2,9 @@ package org.fg.ttrpg.campaign
 
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.Assertions.*
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.nulls.shouldBeNull
 import org.junit.jupiter.api.Test
 import java.util.*
 
@@ -17,8 +19,8 @@ class CampaignServiceTest {
         every { campaignRepository.findById(id) } returns campaign
 
         val result = service.findById(id)
-        assertNotNull(result)
-        assertEquals(id, result?.id)
+        result shouldNotBe null
+        result?.id shouldBe id
     }
 
     @Test
@@ -27,7 +29,7 @@ class CampaignServiceTest {
         every { campaignRepository.findById(id) } returns null
 
         val result = service.findById(id)
-        assertNull(result)
+        result.shouldBeNull()
     }
 
     @Test
@@ -37,7 +39,7 @@ class CampaignServiceTest {
         every { campaignRepository.listByGm(gmId) } returns campaigns
 
         val result = service.listAll(gmId)
-        assertEquals(campaigns, result)
+        result shouldBe campaigns
     }
 
     @Test
@@ -48,8 +50,8 @@ class CampaignServiceTest {
         every { campaignRepository.findByIdForGm(id, gmId) } returns campaign
 
         val result = service.findByIdForGm(id, gmId)
-        assertNotNull(result)
-        assertEquals(id, result?.id)
+        result shouldNotBe null
+        result?.id shouldBe id
     }
 
     @Test
