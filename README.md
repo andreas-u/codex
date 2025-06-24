@@ -62,6 +62,19 @@ If you want to learn more about building native executables, please consult <htt
 - Liquibase ([guide](https://quarkus.io/guides/liquibase)): Handle your database schema migrations with Liquibase
 - JDBC Driver - PostgreSQL ([guide](https://quarkus.io/guides/datasource)): Connect to the PostgreSQL database via JDBC
 
+## Calendar & Timeline API
+
+The service exposes REST endpoints for managing calendars and campaign
+timelines.  See `ARCHITECTURE.md` for full details.
+
+```
+POST /api/settings/{id}/calendars       - create a calendar
+GET  /api/calendars/{id}                - fetch calendar metadata
+POST /api/calendars/{id}/events         - add an event
+PATCH /api/campaigns/{cid}/events/{eid} - apply an override
+GET  /api/campaigns/{cid}/timeline      - list events for a campaign
+```
+
 ## Conventions
 
 When referring to entity attributes that represent a human readable label use the column name `title` instead of `name`. This keeps database names consistent with the Kotlin domain model.
