@@ -151,6 +151,28 @@ class CampaignResourceIT {
         return obj
     }
 
+    @Transactional
+    fun createCampaignObjectWithoutTemplate(
+        id: UUID,
+        campaign: Campaign,
+        settingObj: SettingObject,
+        gmId: UUID
+    ): CampaignObject {
+        val gm = gmRepo.findById(gmId)
+        val obj = CampaignObject().apply {
+            this.id = id
+            title = "co"
+            this.campaign = campaign
+            this.settingObject = settingObj
+            this.template = null
+            this.gm = gm
+            payload = "{}"
+            createdAt = java.time.Instant.now()
+        }
+        campaignObjectRepo.persist(obj)
+        return obj
+    }
+
     val testGmId1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val testGmId2 = UUID.fromString("00000000-0000-0000-0000-000000000002")
 
@@ -244,6 +266,93 @@ class CampaignResourceIT {
             .contentType(ContentType.JSON)
             .body("{}")
             .`when`().patch("/api/campaigns/${campaign.id}/objects/${campObj.id}")
+            .then().statusCode(404)
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt", roles = ["viewer"])
+    @JwtSecurity(
+        claims = [
+            Claim(key = "email", value = "user@gmail.com"),
+            Claim(key = "sub", value = "userJwt"),
+            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+        ]
+    )
+    fun getCampaign_success() {
+        val gmId = testGmId1
+        val setting = createSetting(UUID.randomUUID(), gmId)
+        val campaign = createCampaign(UUID.randomUUID(), gmId, setting)
+
+        given()
+            .`when`().get("/api/campaigns/${campaign.id}")
+            .then().statusCode(200)
+            .body("id", equalTo(campaign.id.toString()))
+            .body("title", equalTo("camp"))
+            .body("gmId", equalTo(gmId.toString()))
+            .body("settingId", equalTo(setting.id.toString()))
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt", roles = ["viewer"])
+    @JwtSecurity(
+        claims = [
+            Claim(key = "email", value = "user@gmail.com"),
+            Claim(key = "sub", value = "userJwt"),
+            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+        ]
+    )
+    fun getCampaign_notFound() {
+        val id = UUID.randomUUID()
+
+        given()
+            .`when`().get("/api/campaigns/$id")
+            .then().statusCode(404)
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt", roles = ["viewer"])
+    @JwtSecurity(
+        claims = [
+            Claim(key = "email", value = "user@gmail.com"),
+            Claim(key = "sub", value = "userJwt"),
+            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+        ]
+    )
+    fun patchObject_noTemplateUsesSettingObject() {
+        val gmId = testGmId1
+        val setting = createSetting(UUID.randomUUID(), gmId)
+        val template = createTemplate(UUID.randomUUID(), gmId, "{}")
+        val settingObj = createSettingObject(UUID.randomUUID(), setting, template, gmId)
+        val campaign = createCampaign(UUID.randomUUID(), gmId, setting)
+        val campObj = createCampaignObjectWithoutTemplate(UUID.randomUUID(), campaign, settingObj, gmId)
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{}")
+            .`when`().patch("/api/campaigns/${campaign.id}/objects/${campObj.id}")
+            .then().statusCode(200)
+            .body("id", equalTo(campObj.id.toString()))
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt", roles = ["viewer"])
+    @JwtSecurity(
+        claims = [
+            Claim(key = "email", value = "user@gmail.com"),
+            Claim(key = "sub", value = "userJwt"),
+            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+        ]
+    )
+    fun patchObject_campaignNotFound() {
+        val gmId = testGmId1
+        val setting = createSetting(UUID.randomUUID(), gmId)
+        val template = createTemplate(UUID.randomUUID(), gmId, "{}")
+        val settingObj = createSettingObject(UUID.randomUUID(), setting, template, gmId)
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{}")
+            .`when`().patch("/api/campaigns/${UUID.randomUUID()}/objects/${settingObj.id}")
             .then().statusCode(404)
     }
 
