@@ -76,6 +76,28 @@ class CampaignEventOverrideRepository @Inject constructor(private val jdbi: Jdbi
         }
     }
 
+    fun listByCampaign(campaignId: UUID): List<CampaignEventOverride> =
+        jdbi.withHandle<List<CampaignEventOverride>, Exception> { handle ->
+            handle.createQuery(
+                "SELECT id, campaign_id, base_event_id, override_mode, payload, created_at FROM campaign_event_override WHERE campaign_id = :cid"
+            )
+                .bind("cid", campaignId)
+                .map(CampaignEventOverrideMapper())
+                .list()
+        }
+
+    fun findByCampaignAndEvent(campaignId: UUID, eventId: UUID): CampaignEventOverride? =
+        jdbi.withHandle<CampaignEventOverride?, Exception> { handle ->
+            handle.createQuery(
+                "SELECT id, campaign_id, base_event_id, override_mode, payload, created_at FROM campaign_event_override WHERE campaign_id = :cid AND base_event_id = :eid"
+            )
+                .bind("cid", campaignId)
+                .bind("eid", eventId)
+                .map(CampaignEventOverrideMapper())
+                .findOne()
+                .orElse(null)
+        }
+
     private class CampaignEventOverrideMapper : RowMapper<CampaignEventOverride> {
         override fun map(rs: ResultSet, ctx: StatementContext): CampaignEventOverride = CampaignEventOverride().apply {
             id = rs.getObject("id", UUID::class.java)

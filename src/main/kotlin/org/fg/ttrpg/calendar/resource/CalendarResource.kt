@@ -1,0 +1,93 @@
+package org.fg.ttrpg.calendar.resource
+
+import jakarta.inject.Inject
+import jakarta.transaction.Transactional
+import jakarta.ws.rs.*
+import jakarta.ws.rs.core.MediaType
+import org.eclipse.microprofile.jwt.JsonWebToken
+import org.fg.ttrpg.calendar.CalendarService
+import org.fg.ttrpg.calendar.CalendarSystem
+import org.fg.ttrpg.common.dto.CalendarDTO
+import org.fg.ttrpg.common.dto.TimelineEventDTO
+import org.fg.ttrpg.setting.SettingService
+import org.fg.ttrpg.timeline.TimelineEvent
+import org.fg.ttrpg.timeline.TimelineService
+import org.fg.ttrpg.setting.SettingObject
+import java.util.UUID
+
+@Path("/api")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+class CalendarResource @Inject constructor(
+    private val calendarService: CalendarService,
+    private val settingService: SettingService,
+    private val timelineService: TimelineService,
+    private val jwt: JsonWebToken,
+) {
+    private fun gmId() = UUID.fromString(jwt.getClaim("gmId"))
+
+    @POST
+    @Path("/settings/{id}/calendars")
+    @Transactional
+    fun createCalendar(@PathParam("id") settingId: UUID, dto: CalendarDTO): CalendarDTO {
+        val setting = settingService.findByIdForGm(settingId, gmId()) ?: throw NotFoundException()
+        val system = CalendarSystem().apply {
+            name = dto.name
+            epochLabel = dto.epochLabel
+            months = dto.months
+            leapRule = dto.leapRule
+            this.setting = setting
+        }
+        calendarService.persist(system)
+        return system.toDto()
+    }
+
+    @GET
+    @Path("/calendars/{id}")
+    fun getCalendar(@PathParam("id") id: UUID): CalendarDTO {
+        val calendar = calendarService.findById(id) ?: throw NotFoundException()
+        settingService.findByIdForGm(calendar.setting?.id ?: error("Setting is null"), gmId())
+            ?: throw NotFoundException()
+        return calendar.toDto()
+    }
+
+    @POST
+    @Path("/calendars/{id}/events")
+    @Transactional
+    fun createEvent(@PathParam("id") calendarId: UUID, dto: TimelineEventDTO): TimelineEventDTO {
+        val calendar = calendarService.findById(calendarId) ?: throw NotFoundException()
+        settingService.findByIdForGm(calendar.setting?.id ?: error("Setting is null"), gmId())
+            ?: throw NotFoundException()
+        val event = TimelineEvent().apply {
+            title = dto.title
+            description = dto.description
+            startDay = dto.startDay
+            endDay = dto.endDay
+            objectRefs = dto.objectRefs.map { SettingObject().apply { id = it } }.toMutableList()
+            tags = dto.tags.toMutableList()
+            this.calendar = calendar
+        }
+        timelineService.persist(event)
+        return event.toDto()
+    }
+}
+
+private fun CalendarSystem.toDto() = CalendarDTO(
+    id,
+    name ?: "",
+    epochLabel,
+    months,
+    leapRule,
+    setting?.id ?: error("Setting is null"),
+)
+
+private fun TimelineEvent.toDto() = TimelineEventDTO(
+    id,
+    calendar?.id ?: error("Calendar is null"),
+    title ?: "",
+    description,
+    startDay ?: 0,
+    endDay,
+    objectRefs.map { it.id ?: error("id") },
+    tags.toList(),
+)
