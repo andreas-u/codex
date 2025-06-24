@@ -13,7 +13,7 @@ A concise, self‑contained reference for architects and developers building the
 ## 2  System Overview
 
 ```
-┌───────┐   REST/JSON    ┌──────────────────────────┐   Panache/JPA   ┌───────────────┐
+┌───────┐   REST/JSON    ┌──────────────────────────┐   JDBI   ┌───────────────┐
 │ Client│ ⇆  API Layer ⇆ │   Service / Use‑Cases    │ ⇆ Persistence ⇆ │   Postgres    │
 └───────┘                 └──────────────────────────┘                 └───────────────┘
                                            ▲
@@ -25,6 +25,7 @@ A concise, self‑contained reference for architects and developers building the
 * **Quarkus 3 + Kotlin** runtime, Jakarta REST layer.
 * **PostgreSQL 16** with JSONB for flexible object payloads.
 * **Liquibase** drives schema migrations.
+* **JDBI** is configured via `src/main/kotlin/org/fg/ttrpg/infra/JdbiConfig.kt` to install Kotlin and Postgres plugins.
 * **JSON Schema** powers user‑defined templates; kotlinx‑serialization optional for hot‑path types.
 
 ---
