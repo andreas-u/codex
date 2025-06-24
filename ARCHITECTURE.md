@@ -75,19 +75,19 @@ Each bounded‑context package is split into **entity → repository → servi
 
   ```sql
   CREATE TABLE template (
-      id          BIGSERIAL PRIMARY KEY,
-      genre_id    BIGINT REFERENCES genre(id),
+      id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      genre_id    UUID REFERENCES genre(id),
       type        TEXT NOT NULL,
-      json_schema JSONB NOT NULL,
+      json_schema JSONB,
       created_at  TIMESTAMPTZ DEFAULT now()
   );
 
   CREATE TABLE setting_object (
-      id          BIGSERIAL PRIMARY KEY,
-      setting_id  BIGINT REFERENCES setting(id),
-      template_id BIGINT REFERENCES template(id),
+      id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      setting_id  UUID REFERENCES setting(id),
+      template_id UUID REFERENCES template(id),
       slug        TEXT UNIQUE,
-      payload     JSONB NOT NULL,
+      payload     JSONB,
       tags        TEXT[]
   );
   ```
