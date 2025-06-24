@@ -78,3 +78,7 @@ GET  /api/campaigns/{cid}/timeline      - list events for a campaign
 ## Conventions
 
 When referring to entity attributes that represent a human readable label use the column name `title` instead of `name`. This keeps database names consistent with the Kotlin domain model.
+
+## API Documentation
+
+Swagger UI is available when the application runs, providing interactive API docs at `http://localhost:8080/swagger-ui`. The raw OpenAPI specification can be retrieved from `http://localhost:8080/openapi`.
