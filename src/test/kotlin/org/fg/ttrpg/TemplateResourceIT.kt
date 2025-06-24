@@ -94,27 +94,6 @@ class TemplateResourceIT {
             Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
         ]
     )
-    fun listBySettingId() {
-        val (setting1, genre1) = createSetting(gmId)
-        val (setting2, _) = createSetting(gmId)
-        createTemplate(genre1, gmId, "npc")
-        createTemplate(createSetting(gmId).second, gmId, "item")
-
-        given()
-            .`when`().get("/api/templates?settingId=${setting1.id}")
-            .then().statusCode(200)
-            .body("size()", equalTo(1))
-    }
-
-    @Test
-    @TestSecurity(user = "userJwt", roles = ["viewer"])
-    @JwtSecurity(
-        claims = [
-            Claim(key = "email", value = "user@gmail.com"),
-            Claim(key = "sub", value = "userJwt"),
-            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
-        ]
-    )
     fun listByGenre() {
         val (setting, genre) = createSetting(gmId)
         createTemplate(genre, gmId, "npc")

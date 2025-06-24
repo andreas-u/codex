@@ -22,14 +22,13 @@ class TemplateResource @Inject constructor(
 
     @GET
     fun list(
-        @QueryParam("settingId") settingId: UUID?,
         @QueryParam("genre") genreId: UUID?,
         @QueryParam("type") type: String?
     ): List<TemplateDTO> {
         val gid = gmId()
         val list = when {
-            genreId != null && type != null -> templates.listByGenreAndType(genreId, type)
-            settingId != null -> templates.listBySettingAndGm(settingId, gid)
+            genreId != null && type == null -> templates.listByGenre(genreId.toString())
+            type != null && genreId == null -> templates.listByType(type)
             else -> templates.listByGm(gid)
         }
         return list.map { it.toDto() }

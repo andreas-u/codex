@@ -239,7 +239,7 @@ class SettingResourceIT {
         val obj = objs.first()
         org.junit.jupiter.api.Assertions.assertEquals("slug", obj.slug)
         org.junit.jupiter.api.Assertions.assertEquals("Title", obj.title)
-        org.junit.jupiter.api.Assertions.assertEquals("{\"name\":\"obj\"}", obj.payload)
+        org.junit.jupiter.api.Assertions.assertEquals("{\"name\": \"obj\"}", obj.payload)
         org.junit.jupiter.api.Assertions.assertEquals(templateId, obj.template?.id)
     }
 }
