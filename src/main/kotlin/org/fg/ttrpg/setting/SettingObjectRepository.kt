@@ -15,7 +15,7 @@ class SettingObjectRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun listBySettingAndGm(settingId: UUID, gmId: UUID): List<SettingObject> =
         jdbi.withHandle<List<SettingObject>, Exception> { handle ->
-            handle.createQuery("SELECT id, slug, name, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE setting_id = :settingId AND gm_id = :gmId")
+            handle.createQuery("SELECT id, slug, title, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE setting_id = :settingId AND gm_id = :gmId")
                 .bind("settingId", settingId)
                 .bind("gmId", gmId)
                 .map(SettingObjectMapper())
@@ -24,7 +24,7 @@ class SettingObjectRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun listByGm(gmId: UUID): List<SettingObject> =
         jdbi.withHandle<List<SettingObject>, Exception> { handle ->
-            handle.createQuery("SELECT id, slug, name, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE gm_id = :gmId")
+            handle.createQuery("SELECT id, slug, title, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE gm_id = :gmId")
                 .bind("gmId", gmId)
                 .map(SettingObjectMapper())
                 .list()
@@ -32,7 +32,7 @@ class SettingObjectRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun findById(id: UUID): SettingObject? =
         jdbi.withHandle<SettingObject?, Exception> { handle ->
-            handle.createQuery("SELECT id, slug, name, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE id = :id")
+            handle.createQuery("SELECT id, slug, title, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE id = :id")
                 .bind("id", id)
                 .map(SettingObjectMapper())
                 .findOne()
@@ -41,7 +41,7 @@ class SettingObjectRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun findByIdForGm(id: UUID, gmId: UUID): SettingObject? =
         jdbi.withHandle<SettingObject?, Exception> { handle ->
-            handle.createQuery("SELECT id, slug, name, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE id = :id AND gm_id = :gmId")
+            handle.createQuery("SELECT id, slug, title, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE id = :id AND gm_id = :gmId")
                 .bind("id", id)
                 .bind("gmId", gmId)
                 .map(SettingObjectMapper())
@@ -57,10 +57,10 @@ class SettingObjectRepository @Inject constructor(private val jdbi: Jdbi) {
             obj.createdAt = java.time.Instant.now()
         }
         jdbi.useHandle<Exception> { handle ->
-            handle.createUpdate("INSERT INTO setting_object (id, slug, name, description, payload, setting_id, template_id, gm_id, created_at) VALUES (:id, :slug, :name, :description, :payload::jsonb, :settingId, :templateId, :gmId, :createdAt)")
+            handle.createUpdate("INSERT INTO setting_object (id, slug, title, description, payload, setting_id, template_id, gm_id, created_at) VALUES (:id, :slug, :title, :description, :payload::jsonb, :settingId, :templateId, :gmId, :createdAt)")
                 .bind("id", obj.id)
                 .bind("slug", obj.slug)
-                .bind("name", obj.title)
+                .bind("title", obj.title)
                 .bind("description", obj.description)
                 .bind("payload", obj.payload)
                 .bind("settingId", obj.setting?.id)
@@ -76,7 +76,7 @@ class SettingObjectRepository @Inject constructor(private val jdbi: Jdbi) {
         override fun map(rs: ResultSet, ctx: StatementContext): SettingObject = SettingObject().apply {
             id = rs.getObject("id", UUID::class.java)
             slug = rs.getString("slug")
-            title = rs.getString("name")
+            title = rs.getString("title")
             description = rs.getString("description")
             payload = rs.getString("payload")
             createdAt = rs.getTimestamp("created_at").toInstant()
