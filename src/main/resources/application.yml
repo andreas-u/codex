@@ -3,6 +3,11 @@ quarkus:
   liquibase:
     change-log: db/changelog/db.changelog-master.yaml
     migrate-at-start: true
+  smallrye-openapi:
+    path: /openapi
+  swagger-ui:
+    path: /swagger-ui
+    always-include: true
 
 # JWT Configuration - applies to all profiles
 mp:
