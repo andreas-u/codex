@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.1.21"
     kotlin("plugin.allopen") version "2.1.21"
     id("io.quarkus")
+    jacoco // Add JaCoCo plugin
 }
 
 repositories {
@@ -39,6 +40,7 @@ dependencies {
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("org.hamcrest:hamcrest:2.2")
     testImplementation("org.testcontainers:postgresql:1.19.3")
+    testImplementation("io.mockk:mockk:1.13.10")
 }
 
 group = "org.fg"
@@ -62,5 +64,22 @@ kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
         javaParameters = true
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+tasks.test {
+    useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
     }
 }
