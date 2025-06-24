@@ -33,8 +33,8 @@ A concise, self‑contained reference for architects and developers building the
 
 | Entity             | Purpose                          | Key Attributes                                                                           |
 | ------------------ | -------------------------------- | ---------------------------------------------------------------------------------------- |
-| **GM**             | Account boundary / tenant        | `id`, `email`, `displayName`, auth fields                                                |
-| **Setting**        | Cohesive world bible             | `id`, `gmId`, `title`, `summary`, `createdAt`                                            |
+| **GM**             | Account boundary / tenant        | `id`, `email`, `username`, auth fields                                                   |
+| **Setting**        | Cohesive world bible             | `id`, `gmId`, `title`, `description`, `createdAt`                                       |
 | **Genre**          | Flavour pack attached to Setting | `id`, `settingId`, `code` (`"scifi"`), `name`                                            |
 | **Template**       | Declarative schema for objects   | `id`, `genreId`, `type`, `jsonSchema` (text)                                             |
 | **SettingObject**  | Canon facts                      | `id`, `settingId`, `templateId?`, `slug`, `payload` (JSONB), `tags[]`                    |
