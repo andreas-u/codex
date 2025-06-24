@@ -41,15 +41,6 @@ class TemplateRepository @Inject constructor(private val jdbi: Jdbi) {
                 .orElse(null)
         }
 
-    fun listBySettingAndGm(settingId: UUID, gmId: UUID): List<Template> =
-        jdbi.withHandle<List<Template>, Exception> { handle ->
-            handle.createQuery("SELECT id, name, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE genre_id = :genreId AND gm_id = :gmId")
-                .bind("genreId", settingId)
-                .bind("gmId", gmId)
-                .map(TemplateMapper())
-                .list()
-        }
-
     fun listByGenre(genre: String): List<Template> =
         jdbi.withHandle<List<Template>, Exception> { handle ->
             handle.createQuery("SELECT id, name, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE genre_id = :genreId")
@@ -66,14 +57,7 @@ class TemplateRepository @Inject constructor(private val jdbi: Jdbi) {
                 .list()
         }
 
-    fun listByGenreAndType(genreId: UUID, type: String): List<Template> =
-        jdbi.withHandle<List<Template>, Exception> { handle ->
-            handle.createQuery("SELECT id, name, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE genre_id = :genreId AND type = :type")
-                .bind("genreId", genreId)
-                .bind("type", type)
-                .map(TemplateMapper())
-                .list()
-        }
+
 
     fun persist(template: Template) {
         require(!template.type.isNullOrBlank()) { "Template.type must not be null or blank" }
