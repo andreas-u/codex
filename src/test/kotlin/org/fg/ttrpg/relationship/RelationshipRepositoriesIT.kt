@@ -55,8 +55,8 @@ class RelationshipRepositoriesIT {
 
         jdbi.useHandle<Exception> { h ->
             h.execute("INSERT INTO gm (id, username) VALUES (?, ?)", gmId, "gm")
-            h.execute("INSERT INTO setting (id, name, gm_id, created_at) VALUES (?, ?, ?, now())", settingId, "world", gmId)
-            h.execute("INSERT INTO campaign (id, name, gm_id, setting_id, started_on) VALUES (?, ?, ?, ?, now())", campaignId, "camp", gmId, settingId)
+            h.execute("INSERT INTO setting (id, title, gm_id, created_at) VALUES (?, ?, ?, now())", settingId, "world", gmId)
+            h.execute("INSERT INTO campaign (id, title, gm_id, setting_id, started_on) VALUES (?, ?, ?, ?, now())", campaignId, "camp", gmId, settingId)
             h.createUpdate("INSERT INTO relationship_override (id, campaign_id, override_mode, properties, created_at) VALUES (:id, :campaignId, :mode, '{}'::jsonb, now())")
                 .bind("id", overrideId)
                 .bind("campaignId", campaignId)
@@ -87,9 +87,9 @@ class RelationshipRepositoriesIT {
 
         jdbi.useHandle<Exception> { h ->
             h.execute("INSERT INTO gm (id, username) VALUES (?, ?)", gmId, "gm")
-            h.execute("INSERT INTO setting (id, name, gm_id, created_at) VALUES (?, ?, ?, now())", settingId, "world", gmId)
-            h.execute("INSERT INTO setting_object (id, slug, name, setting_id, gm_id, created_at) VALUES (?, 'src', 'src', ?, ?, now())", srcObj, settingId, gmId)
-            h.execute("INSERT INTO setting_object (id, slug, name, setting_id, gm_id, created_at) VALUES (?, 'tgt', 'tgt', ?, ?, now())", tgtObj, settingId, gmId)
+            h.execute("INSERT INTO setting (id, title, gm_id, created_at) VALUES (?, ?, ?, now())", settingId, "world", gmId)
+            h.execute("INSERT INTO setting_object (id, slug, title, setting_id, gm_id, created_at) VALUES (?, 'src', 'src', ?, ?, now())", srcObj, settingId, gmId)
+            h.execute("INSERT INTO setting_object (id, slug, title, setting_id, gm_id, created_at) VALUES (?, 'tgt', 'tgt', ?, ?, now())", tgtObj, settingId, gmId)
             h.execute("INSERT INTO relationship_type (id, setting_id, code, display_name, directional, created_at) VALUES (?, ?, 'friend', 'Friend', false, now())", typeId, settingId)
             h.execute("INSERT INTO relationship (id, setting_id, type_id, source_object, target_object, is_bidirectional, created_at) VALUES (?, ?, ?, ?, ?, false, now())", relId, settingId, typeId, srcObj, tgtObj)
         }

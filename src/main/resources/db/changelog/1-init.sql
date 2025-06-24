@@ -9,7 +9,7 @@ CREATE TABLE gm (
 
 CREATE TABLE setting (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
     description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     gm_id UUID NOT NULL REFERENCES gm(id) ON DELETE CASCADE
@@ -17,14 +17,14 @@ CREATE TABLE setting (
 
 CREATE TABLE genre (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
     code VARCHAR(255) NOT NULL UNIQUE,
     setting_id UUID NOT NULL REFERENCES setting(id) ON DELETE CASCADE
 );
 
 CREATE TABLE template (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
     description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     type VARCHAR(255) NOT NULL,
@@ -37,7 +37,7 @@ CREATE INDEX template_json_schema_gin_idx ON template USING GIN (json_schema);
 CREATE TABLE setting_object (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     slug VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
     description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     payload JSONB,
@@ -54,7 +54,7 @@ CREATE TABLE setting_object_tags (
 
 CREATE TABLE campaign (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
     started_on TIMESTAMP NOT NULL DEFAULT now(),
     gm_id UUID NOT NULL REFERENCES gm(id) ON DELETE CASCADE,
     setting_id UUID NOT NULL REFERENCES setting(id) ON DELETE CASCADE
@@ -62,7 +62,7 @@ CREATE TABLE campaign (
 
 CREATE TABLE campaign_object (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
     description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     campaign_id UUID NOT NULL REFERENCES campaign(id) ON DELETE CASCADE,

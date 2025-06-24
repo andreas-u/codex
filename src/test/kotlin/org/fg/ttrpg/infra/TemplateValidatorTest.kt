@@ -6,6 +6,7 @@ import org.fg.ttrpg.infra.validation.TemplateValidationException
 import org.fg.ttrpg.infra.validation.TemplateValidator
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Disabled
 import java.util.UUID
@@ -55,5 +56,22 @@ class TemplateValidatorTest {
         shouldThrow<IllegalArgumentException> {
             validator.validate(UUID.randomUUID(), payload)
         }
+    }
+
+    @Test
+    fun `schema caching prevents duplicate repository calls`() {
+        var calls = 0
+        val repo = object : TemplateSchemaRepository {
+            override fun findSchema(templateId: UUID): String? {
+                calls++
+                return "{}"
+            }
+        }
+        val validator = TemplateValidator(repo)
+        val id = UUID.randomUUID()
+        val payload = mapper.readTree("{}")
+        validator.validate(id, payload)
+        validator.validate(id, payload)
+        calls shouldBe 1
     }
 }

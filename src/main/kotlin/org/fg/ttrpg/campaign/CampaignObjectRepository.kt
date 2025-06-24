@@ -17,7 +17,7 @@ class CampaignObjectRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun listByCampaignAndGm(campaignId: UUID, gmId: UUID): List<CampaignObject> =
         jdbi.withHandle<List<CampaignObject>, Exception> { handle ->
-            handle.createQuery("SELECT id, name, description, campaign_id, setting_object_id, gm_id, template_id, override_mode, payload, created_at FROM campaign_object WHERE campaign_id = :campaignId AND gm_id = :gmId")
+            handle.createQuery("SELECT id, title, description, campaign_id, setting_object_id, gm_id, template_id, override_mode, payload, created_at FROM campaign_object WHERE campaign_id = :campaignId AND gm_id = :gmId")
                 .bind("campaignId", campaignId)
                 .bind("gmId", gmId)
                 .map(CampaignObjectMapper())
@@ -26,7 +26,7 @@ class CampaignObjectRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun findById(id: UUID): CampaignObject? =
         jdbi.withHandle<CampaignObject?, Exception> { handle ->
-            handle.createQuery("SELECT id, name, description, campaign_id, setting_object_id, gm_id, template_id, override_mode, payload, created_at FROM campaign_object WHERE id = :id")
+            handle.createQuery("SELECT id, title, description, campaign_id, setting_object_id, gm_id, template_id, override_mode, payload, created_at FROM campaign_object WHERE id = :id")
                 .bind("id", id)
                 .map(CampaignObjectMapper())
                 .findOne()
@@ -35,7 +35,7 @@ class CampaignObjectRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun findByIdForGm(id: UUID, gmId: UUID): CampaignObject? =
         jdbi.withHandle<CampaignObject?, Exception> { handle ->
-            handle.createQuery("SELECT id, name, description, campaign_id, setting_object_id, gm_id, template_id, override_mode, payload, created_at FROM campaign_object WHERE id = :id AND gm_id = :gmId")
+            handle.createQuery("SELECT id, title, description, campaign_id, setting_object_id, gm_id, template_id, override_mode, payload, created_at FROM campaign_object WHERE id = :id AND gm_id = :gmId")
                 .bind("id", id)
                 .bind("gmId", gmId)
                 .map(CampaignObjectMapper())
@@ -45,9 +45,9 @@ class CampaignObjectRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun persist(obj: CampaignObject) {
         jdbi.useHandle<Exception> { handle ->
-            handle.createUpdate("INSERT INTO campaign_object (id, name, description, campaign_id, setting_object_id, gm_id, template_id, override_mode, payload, created_at) VALUES (:id, :name, :description, :campaignId, :settingObjectId, :gmId, :templateId, :overrideMode, :payload::jsonb, :createdAt)")
+            handle.createUpdate("INSERT INTO campaign_object (id, title, description, campaign_id, setting_object_id, gm_id, template_id, override_mode, payload, created_at) VALUES (:id, :title, :description, :campaignId, :settingObjectId, :gmId, :templateId, :overrideMode, :payload::jsonb, :createdAt)")
                 .bind("id", obj.id)
-                .bind("name", obj.title)
+                .bind("title", obj.title)
                 .bind("description", obj.description)
                 .bind("campaignId", obj.campaign?.id)
                 .bind("settingObjectId", obj.settingObject?.id)
@@ -73,7 +73,7 @@ class CampaignObjectRepository @Inject constructor(private val jdbi: Jdbi) {
         jdbi.useHandle<Exception> { handle ->
             handle.createUpdate("""
                 UPDATE campaign_object SET
-                    name = :name,
+                    title = :title,
                     description = :description,
                     campaign_id = :campaignId,
                     setting_object_id = :settingObjectId,
@@ -84,7 +84,7 @@ class CampaignObjectRepository @Inject constructor(private val jdbi: Jdbi) {
                 WHERE id = :id
             """)
                 .bind("id", obj.id)
-                .bind("name", obj.title)
+                .bind("title", obj.title)
                 .bind("description", obj.description)
                 .bind("campaignId", obj.campaign?.id)
                 .bind("settingObjectId", obj.settingObject?.id)
@@ -99,7 +99,7 @@ class CampaignObjectRepository @Inject constructor(private val jdbi: Jdbi) {
     private class CampaignObjectMapper : RowMapper<CampaignObject> {
         override fun map(rs: ResultSet, ctx: StatementContext): CampaignObject = CampaignObject().apply {
             id = rs.getObject("id", UUID::class.java)
-            title = rs.getString("name")
+            title = rs.getString("title")
             description = rs.getString("description")
             campaign = Campaign().apply { id = rs.getObject("campaign_id", UUID::class.java) }
             settingObject = SettingObject().apply { id = rs.getObject("setting_object_id", UUID::class.java) }

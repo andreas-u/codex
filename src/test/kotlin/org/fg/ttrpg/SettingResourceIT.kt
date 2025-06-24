@@ -185,6 +185,42 @@ class SettingResourceIT {
         claims = [
             Claim(key = "email", value = "user@gmail.com"),
             Claim(key = "sub", value = "userJwt"),
+            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+        ]
+    )
+    fun createObject_success() {
+        val gmId = testGmId1
+        val settingId = UUID.randomUUID()
+        createSetting(settingId, gmId)
+        val templateId = UUID.randomUUID()
+        createTemplate(templateId, gmId, "{}")
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(
+                SettingObjectDTO(
+                    null,
+                    "slug",
+                    "Title",
+                    payload = "{\"name\":\"obj\"}",
+                    tags = emptyList(),
+                    settingId = settingId,
+                    templateId = templateId
+                )
+            )
+            .`when`().post("/api/settings/$settingId/objects")
+            .then().statusCode(200)
+            .body("slug", equalTo("slug"))
+
+        verifyObject(settingId, gmId, templateId)
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt", roles = ["viewer"])
+    @JwtSecurity(
+        claims = [
+            Claim(key = "email", value = "user@gmail.com"),
+            Claim(key = "sub", value = "userJwt"),
             Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000002")
         ]
     )
@@ -215,5 +251,16 @@ class SettingResourceIT {
     fun verifySettings(gmId: UUID, expected: Int) {
         val count = settingRepo.listByGm(gmId).size
         org.junit.jupiter.api.Assertions.assertEquals(expected, count)
+    }
+
+    @TestTransaction
+    fun verifyObject(settingId: UUID, gmId: UUID, templateId: UUID) {
+        val objs = objectRepo.listBySettingAndGm(settingId, gmId)
+        org.junit.jupiter.api.Assertions.assertEquals(1, objs.size)
+        val obj = objs.first()
+        org.junit.jupiter.api.Assertions.assertEquals("slug", obj.slug)
+        org.junit.jupiter.api.Assertions.assertEquals("Title", obj.title)
+        org.junit.jupiter.api.Assertions.assertEquals("{\"name\": \"obj\"}", obj.payload)
+        org.junit.jupiter.api.Assertions.assertEquals(templateId, obj.template?.id)
     }
 }

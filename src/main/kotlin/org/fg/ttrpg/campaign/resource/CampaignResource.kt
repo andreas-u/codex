@@ -49,7 +49,7 @@ class CampaignResource @Inject constructor(
         val original = obj.payload ?: "{}"
         val merged = merge.merge(original, patch)
         val node = mapper.readTree(merged)
-        val templateId = obj.template?.id ?: obj.settingObject?.id
+        val templateId = obj.template?.id ?: obj.settingObject?.template?.id
         return runCatching {
             if (templateId != null) {
                 validator.validate(templateId, node)

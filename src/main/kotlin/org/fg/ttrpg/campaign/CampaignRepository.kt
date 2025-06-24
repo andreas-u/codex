@@ -24,7 +24,7 @@ class CampaignRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun findById(id: UUID): Campaign? =
         jdbi.withHandle<Campaign?, Exception> { handle ->
-            handle.createQuery("SELECT id, name, started_on, gm_id, setting_id FROM campaign WHERE id = :id")
+            handle.createQuery("SELECT id, title, started_on, gm_id, setting_id FROM campaign WHERE id = :id")
                 .bind("id", id)
                 .map(CampaignMapper())
                 .findOne()
@@ -33,7 +33,7 @@ class CampaignRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun findByIdForGm(id: UUID, gmId: UUID): Campaign? =
         jdbi.withHandle<Campaign?, Exception> { handle ->
-            handle.createQuery("SELECT id, name, started_on, gm_id, setting_id FROM campaign WHERE id = :id AND gm_id = :gmId")
+            handle.createQuery("SELECT id, title, started_on, gm_id, setting_id FROM campaign WHERE id = :id AND gm_id = :gmId")
                 .bind("id", id)
                 .bind("gmId", gmId)
                 .map(CampaignMapper())
@@ -43,9 +43,9 @@ class CampaignRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun persist(campaign: Campaign) {
         jdbi.useHandle<Exception> { handle ->
-            handle.createUpdate("INSERT INTO campaign (id, name, started_on, gm_id, setting_id) VALUES (:id, :name, :startedOn, :gmId, :settingId)")
+            handle.createUpdate("INSERT INTO campaign (id, title, started_on, gm_id, setting_id) VALUES (:id, :title, :startedOn, :gmId, :settingId)")
                 .bind("id", campaign.id)
-                .bind("name", campaign.title)
+                .bind("title", campaign.title)
                 .bind("startedOn", campaign.startedOn)
                 .bind("gmId", campaign.gm?.id)
                 .bind("settingId", campaign.setting?.id)
@@ -56,7 +56,7 @@ class CampaignRepository @Inject constructor(private val jdbi: Jdbi) {
     private class CampaignMapper : RowMapper<Campaign> {
         override fun map(rs: ResultSet, ctx: StatementContext): Campaign = Campaign().apply {
             id = rs.getObject("id", UUID::class.java)
-            title = rs.getString("name")
+            title = rs.getString("title")
             startedOn = rs.getTimestamp("started_on")?.toInstant()
             gm = GM().apply { id = rs.getObject("gm_id", UUID::class.java) }
             setting = Setting().apply { id = rs.getObject("setting_id", UUID::class.java) }
