@@ -15,7 +15,7 @@ class SettingRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun listByGm(gmId: UUID): List<Setting> =
         jdbi.withHandle<List<Setting>, Exception> { handle ->
-            handle.createQuery("SELECT id, name, description, gm_id, created_at FROM setting WHERE gm_id = :gmId")
+            handle.createQuery("SELECT id, title, description, gm_id, created_at FROM setting WHERE gm_id = :gmId")
                 .bind("gmId", gmId)
                 .map(SettingMapper())
                 .list()
@@ -23,7 +23,7 @@ class SettingRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun findById(id: UUID): Setting? =
         jdbi.withHandle<Setting?, Exception> { handle ->
-            handle.createQuery("SELECT id, name, description, gm_id, created_at FROM setting WHERE id = :id")
+            handle.createQuery("SELECT id, title, description, gm_id, created_at FROM setting WHERE id = :id")
                 .bind("id", id)
                 .map(SettingMapper())
                 .findOne()
@@ -32,7 +32,7 @@ class SettingRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun findByIdForGm(id: UUID, gmId: UUID): Setting? =
         jdbi.withHandle<Setting?, Exception> { handle ->
-            handle.createQuery("SELECT id, name, description, gm_id, created_at FROM setting WHERE id = :id AND gm_id = :gmId")
+            handle.createQuery("SELECT id, title, description, gm_id, created_at FROM setting WHERE id = :id AND gm_id = :gmId")
                 .bind("id", id)
                 .bind("gmId", gmId)
                 .map(SettingMapper())
@@ -46,17 +46,17 @@ class SettingRepository @Inject constructor(private val jdbi: Jdbi) {
         }
         jdbi.useHandle<Exception> { handle ->
             if (setting.createdAt != null) {
-                handle.createUpdate("INSERT INTO setting (id, name, description, gm_id, created_at) VALUES (:id, :name, :description, :gmId, :createdAt)")
+                handle.createUpdate("INSERT INTO setting (id, title, description, gm_id, created_at) VALUES (:id, :title, :description, :gmId, :createdAt)")
                     .bind("id", setting.id)
-                    .bind("name", setting.title)
+                    .bind("title", setting.title)
                     .bind("description", setting.description)
                     .bind("gmId", setting.gm?.id)
                     .bind("createdAt", setting.createdAt)
                     .execute()
             } else {
-                handle.createUpdate("INSERT INTO setting (id, name, description, gm_id) VALUES (:id, :name, :description, :gmId)")
+                handle.createUpdate("INSERT INTO setting (id, title, description, gm_id) VALUES (:id, :title, :description, :gmId)")
                     .bind("id", setting.id)
-                    .bind("name", setting.title)
+                    .bind("title", setting.title)
                     .bind("description", setting.description)
                     .bind("gmId", setting.gm?.id)
                     .execute()
@@ -67,7 +67,7 @@ class SettingRepository @Inject constructor(private val jdbi: Jdbi) {
     private class SettingMapper : RowMapper<Setting> {
         override fun map(rs: ResultSet, ctx: StatementContext): Setting = Setting().apply {
             id = rs.getObject("id", UUID::class.java)
-            title = rs.getString("name")
+            title = rs.getString("title")
             description = rs.getString("description")
             createdAt = rs.getTimestamp("created_at").toInstant()
             gm = GM().apply { id = rs.getObject("gm_id", UUID::class.java) }

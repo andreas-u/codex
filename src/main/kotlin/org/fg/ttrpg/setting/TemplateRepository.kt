@@ -16,7 +16,7 @@ class TemplateRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun listByGm(gmId: UUID): List<Template> =
         jdbi.withHandle<List<Template>, Exception> { handle ->
-            handle.createQuery("SELECT id, name, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE gm_id = :gmId")
+            handle.createQuery("SELECT id, title, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE gm_id = :gmId")
                 .bind("gmId", gmId)
                 .map(TemplateMapper())
                 .list()
@@ -24,7 +24,7 @@ class TemplateRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun findById(id: UUID): Template? =
         jdbi.withHandle<Template?, Exception> { handle ->
-            handle.createQuery("SELECT id, name, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE id = :id")
+            handle.createQuery("SELECT id, title, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE id = :id")
                 .bind("id", id)
                 .map(TemplateMapper())
                 .findOne()
@@ -33,7 +33,7 @@ class TemplateRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun findByIdForGm(id: UUID, gmId: UUID): Template? =
         jdbi.withHandle<Template?, Exception> { handle ->
-            handle.createQuery("SELECT id, name, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE id = :id AND gm_id = :gmId")
+            handle.createQuery("SELECT id, title, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE id = :id AND gm_id = :gmId")
                 .bind("id", id)
                 .bind("gmId", gmId)
                 .map(TemplateMapper())
@@ -43,7 +43,7 @@ class TemplateRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun listByGenre(genre: String): List<Template> =
         jdbi.withHandle<List<Template>, Exception> { handle ->
-            handle.createQuery("SELECT id, name, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE genre_id = :genreId")
+            handle.createQuery("SELECT id, title, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE genre_id = :genreId")
                 .bind("genreId", UUID.fromString(genre))
                 .map(TemplateMapper())
                 .list()
@@ -51,7 +51,7 @@ class TemplateRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun listByType(type: String): List<Template> =
         jdbi.withHandle<List<Template>, Exception> { handle ->
-            handle.createQuery("SELECT id, name, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE type = :type")
+            handle.createQuery("SELECT id, title, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE type = :type")
                 .bind("type", type)
                 .map(TemplateMapper())
                 .list()
@@ -63,9 +63,9 @@ class TemplateRepository @Inject constructor(private val jdbi: Jdbi) {
         require(!template.type.isNullOrBlank()) { "Template.type must not be null or blank" }
         jdbi.useHandle<Exception> { handle ->
             if (template.createdAt != null) {
-                handle.createUpdate("INSERT INTO template (id, name, description, json_schema, type, gm_id, genre_id, created_at) VALUES (:id, :name, :description, :jsonSchema::jsonb, :type, :gmId, :genreId, :createdAt)")
+                handle.createUpdate("INSERT INTO template (id, title, description, json_schema, type, gm_id, genre_id, created_at) VALUES (:id, :title, :description, :jsonSchema::jsonb, :type, :gmId, :genreId, :createdAt)")
                     .bind("id", template.id)
-                    .bind("name", template.title)
+                    .bind("title", template.title)
                     .bind("description", template.description)
                     .bind("jsonSchema", template.jsonSchema)
                     .bind("type", template.type)
@@ -74,9 +74,9 @@ class TemplateRepository @Inject constructor(private val jdbi: Jdbi) {
                     .bind("createdAt", template.createdAt)
                     .execute()
             } else {
-                handle.createUpdate("INSERT INTO template (id, name, description, json_schema, type, gm_id, genre_id) VALUES (:id, :name, :description, :jsonSchema::jsonb, :type, :gmId, :genreId)")
+                handle.createUpdate("INSERT INTO template (id, title, description, json_schema, type, gm_id, genre_id) VALUES (:id, :title, :description, :jsonSchema::jsonb, :type, :gmId, :genreId)")
                     .bind("id", template.id)
-                    .bind("name", template.title)
+                    .bind("title", template.title)
                     .bind("description", template.description)
                     .bind("jsonSchema", template.jsonSchema)
                     .bind("type", template.type)
@@ -90,7 +90,7 @@ class TemplateRepository @Inject constructor(private val jdbi: Jdbi) {
     private class TemplateMapper : RowMapper<Template> {
         override fun map(rs: ResultSet, ctx: StatementContext): Template = Template().apply {
             id = rs.getObject("id", UUID::class.java)
-            title = rs.getString("name")
+            title = rs.getString("title")
             description = rs.getString("description")
             jsonSchema = rs.getString("json_schema")
             type = rs.getString("type")
