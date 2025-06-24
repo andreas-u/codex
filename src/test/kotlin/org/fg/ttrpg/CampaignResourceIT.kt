@@ -6,96 +6,28 @@ import io.quarkus.test.security.jwt.Claim
 import io.quarkus.test.security.jwt.JwtSecurity
 import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
-import jakarta.inject.Inject
-import jakarta.transaction.Transactional
-import org.fg.ttrpg.account.GM
-import org.fg.ttrpg.account.GMRepository
+import org.fg.ttrpg.testutils.IntegrationTestHelper
 import org.fg.ttrpg.campaign.Campaign
 import org.fg.ttrpg.campaign.CampaignObject
 import org.fg.ttrpg.campaign.CampaignObjectRepository
-import org.fg.ttrpg.campaign.CampaignRepository
 import org.fg.ttrpg.setting.*
 import org.hamcrest.CoreMatchers.equalTo
-import org.junit.jupiter.api.AfterEach
+import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import jakarta.transaction.Transactional
 import java.util.*
 
 
 @QuarkusTest
-class CampaignResourceIT {
-    @Inject
-    lateinit var gmRepo: GMRepository
-
-    @Inject
-    lateinit var settingRepo: SettingRepository
-
-    @Inject
-    lateinit var templateRepo: TemplateRepository
-
+class CampaignResourceIT : IntegrationTestHelper() {
     @Inject
     lateinit var settingObjectRepo: SettingObjectRepository
 
     @Inject
-    lateinit var campaignRepo: CampaignRepository
-
-    @Inject
     lateinit var campaignObjectRepo: CampaignObjectRepository
 
-    @Inject
-    lateinit var genreRepo: org.fg.ttrpg.genre.GenreRepository
 
-
-    @Transactional
-    fun createGm(id: UUID) {
-        val gm = GM().apply {
-            this.id = id
-            username = "gm-$id"
-        }
-        gmRepo.persist(gm)
-    }
-
-    @Transactional
-    fun createGenre(id: UUID, setting: Setting): org.fg.ttrpg.genre.Genre {
-        val genre = org.fg.ttrpg.genre.Genre().apply {
-            this.id = id
-            title = "genre"
-            code = "gen-${id.toString().substring(0, 8)}"  // Make code unique by including part of the UUID
-            this.setting = setting
-        }
-        genreRepo.insert(genre)
-        return genre
-    }
-
-    @Transactional
-    fun createSetting(id: UUID, gmId: UUID): Setting {
-        val gm = gmRepo.findById(gmId)
-        val setting = Setting().apply {
-            this.id = id
-            title = "world"
-            gm?.let { this.gm = it }
-        }
-        settingRepo.persist(setting)
-        return setting
-    }
-
-    @Transactional
-    fun createTemplate(id: UUID, gmId: UUID, schema: String): Template {
-        val gm = gmRepo.findById(gmId)
-        // Create a setting and genre for the template
-        val setting = createSetting(UUID.randomUUID(), gmId)
-        val genre = createGenre(UUID.randomUUID(), setting)
-        val template = Template().apply {
-            this.id = id
-            title = "tpl"
-            type = "test"  // Setting the required type field
-            jsonSchema = schema
-            this.gm = gm
-            this.genre = genre  // Setting the required genre field
-        }
-        templateRepo.persist(template)
-        return template
-    }
 
     @Transactional
     fun createSettingObject(id: UUID, setting: Setting, template: Template, gmId: UUID): SettingObject {
@@ -114,19 +46,6 @@ class CampaignResourceIT {
         return obj
     }
 
-    @Transactional
-    fun createCampaign(id: UUID, gmId: UUID, setting: Setting): Campaign {
-        val gm = gmRepo.findById(gmId)
-        val camp = Campaign().apply {
-            this.id = id
-            title = "camp"
-            startedOn = java.time.Instant.now()  // Setting the required startedOn field
-            this.gm = gm
-            this.setting = setting
-        }
-        campaignRepo.persist(camp)
-        return camp
-    }
 
     @Transactional
     fun createCampaignObject(
@@ -182,11 +101,6 @@ class CampaignResourceIT {
         createGm(testGmId2)
     }
 
-    @AfterEach
-    fun cleanup() {
-        gmRepo.deleteById(testGmId1)
-        gmRepo.deleteById(testGmId2)
-    }
 
     @Test
     @TestSecurity(user = "userJwt", roles = ["viewer"])

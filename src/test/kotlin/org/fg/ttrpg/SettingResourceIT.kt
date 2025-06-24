@@ -8,36 +8,21 @@ import io.quarkus.test.security.jwt.JwtSecurity
 import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
 import jakarta.inject.Inject
-import jakarta.transaction.Transactional
-import org.fg.ttrpg.account.GM
-import org.fg.ttrpg.account.GMRepository
 import org.fg.ttrpg.common.dto.SettingDTO
 import org.fg.ttrpg.common.dto.SettingObjectDTO
 import org.fg.ttrpg.setting.*
 import org.hamcrest.CoreMatchers.equalTo
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.fg.ttrpg.testutils.IntegrationTestHelper
 import java.util.*
 
 
 @QuarkusTest
-class SettingResourceIT {
-    @Inject
-    lateinit var gmRepo: GMRepository
-
-    @Inject
-    lateinit var settingRepo: SettingRepository
-
+class SettingResourceIT : IntegrationTestHelper() {
     @Inject
     lateinit var objectRepo: SettingObjectRepository
-
-    @Inject
-    lateinit var templateRepo: TemplateRepository
-
-    @Inject
-    lateinit var genreRepo: org.fg.ttrpg.genre.GenreRepository
 
     val testGmId1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val testGmId2 = UUID.fromString("00000000-0000-0000-0000-000000000002")
@@ -48,61 +33,6 @@ class SettingResourceIT {
         createGm(testGmId2)
     }
 
-    @AfterEach
-    fun cleanup() {
-        gmRepo.deleteById(testGmId1)
-        gmRepo.deleteById(testGmId2)
-    }
-
-    @Transactional
-    fun createGm(id: UUID) {
-        val gm = GM().apply {
-            this.id = id
-            username = "gm-$id"
-        }
-        gmRepo.persist(gm)
-    }
-
-    @Transactional
-    fun createSetting(id: UUID, gmId: UUID): Setting {
-        val gm = gmRepo.findById(gmId)
-        val setting = Setting().apply {
-            this.id = id
-            title = "world"
-            gm?.let { this.gm = it }
-        }
-        settingRepo.persist(setting)
-        return setting
-    }
-
-    @Transactional
-    fun createGenre(id: UUID, setting: Setting): org.fg.ttrpg.genre.Genre {
-        val genre = org.fg.ttrpg.genre.Genre().apply {
-            this.id = id
-            title = "genre"
-            code = "gen-${id.toString().substring(0, 8)}"
-            this.setting = setting
-        }
-        genreRepo.insert(genre)
-        return genre
-    }
-
-    @Transactional
-    fun createTemplate(id: UUID, gmId: UUID, schema: String): Template {
-        val gm = gmRepo.findById(gmId)
-        val setting = settingRepo.listByGm(gmId).firstOrNull() ?: createSetting(UUID.randomUUID(), gmId)
-        val genre = createGenre(UUID.randomUUID(), setting)
-        val template = Template().apply {
-            this.id = id
-            title = "tpl"
-            jsonSchema = schema
-            this.gm = gm
-            this.type = "test"
-            this.genre = genre
-        }
-        templateRepo.persist(template)
-        return template
-    }
 
     @Test
     @TestSecurity(user = "userJwt", roles = ["viewer"])
