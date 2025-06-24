@@ -2,79 +2,117 @@ package org.fg.ttrpg.setting
 
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
-import org.jooq.DSLContext
-import org.jooq.Record
-import org.jooq.impl.DSL
+import org.fg.ttrpg.account.GM
+import org.fg.ttrpg.genre.Genre
+import org.jdbi.v3.core.Jdbi
+import org.jdbi.v3.core.mapper.RowMapper
+import org.jdbi.v3.core.statement.StatementContext
+import java.sql.ResultSet
+import java.time.Instant
 import java.util.UUID
 
 @ApplicationScoped
-class TemplateRepository @Inject constructor(private val dsl: DSLContext) {
-    private val TEMPLATE = DSL.table("template")
-    private val TEMPLATE_ID = DSL.field("id", java.util.UUID::class.java)
-    private val TEMPLATE_NAME = DSL.field("name", String::class.java)
-    private val TEMPLATE_DESCRIPTION = DSL.field("description", String::class.java)
-    private val TEMPLATE_JSON_SCHEMA = DSL.field("json_schema", String::class.java)
-    private val TEMPLATE_TYPE = DSL.field("type", String::class.java)
-    private val TEMPLATE_GM_ID = DSL.field("gm_id", java.util.UUID::class.java)
-    private val TEMPLATE_GENRE_ID = DSL.field("genre_id", java.util.UUID::class.java)
-    private val TEMPLATE_CREATED_AT = DSL.field("created_at", java.time.Instant::class.java)
+class TemplateRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun listByGm(gmId: UUID): List<Template> =
-        dsl.selectFrom(TEMPLATE)
-            .where(TEMPLATE_GM_ID.eq(gmId))
-            .fetch(::toTemplate)
+        jdbi.withHandle<List<Template>, Exception> { handle ->
+            handle.createQuery("SELECT id, name, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE gm_id = :gmId")
+                .bind("gmId", gmId)
+                .map(TemplateMapper())
+                .list()
+        }
 
     fun findById(id: UUID): Template? =
-        dsl.selectFrom(TEMPLATE)
-            .where(TEMPLATE_ID.eq(id))
-            .fetchOne(::toTemplate)
+        jdbi.withHandle<Template?, Exception> { handle ->
+            handle.createQuery("SELECT id, name, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE id = :id")
+                .bind("id", id)
+                .map(TemplateMapper())
+                .findOne()
+                .orElse(null)
+        }
 
     fun findByIdForGm(id: UUID, gmId: UUID): Template? =
-        dsl.selectFrom(TEMPLATE)
-            .where(TEMPLATE_ID.eq(id).and(TEMPLATE_GM_ID.eq(gmId)))
-            .fetchOne(::toTemplate)
+        jdbi.withHandle<Template?, Exception> { handle ->
+            handle.createQuery("SELECT id, name, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE id = :id AND gm_id = :gmId")
+                .bind("id", id)
+                .bind("gmId", gmId)
+                .map(TemplateMapper())
+                .findOne()
+                .orElse(null)
+        }
 
     fun listBySettingAndGm(settingId: UUID, gmId: UUID): List<Template> =
-        dsl.selectFrom(TEMPLATE)
-            .where(TEMPLATE_GENRE_ID.eq(settingId).and(TEMPLATE_GM_ID.eq(gmId)))
-            .fetch(::toTemplate)
+        jdbi.withHandle<List<Template>, Exception> { handle ->
+            handle.createQuery("SELECT id, name, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE genre_id = :genreId AND gm_id = :gmId")
+                .bind("genreId", settingId)
+                .bind("gmId", gmId)
+                .map(TemplateMapper())
+                .list()
+        }
 
     fun listByGenre(genre: String): List<Template> =
-        dsl.selectFrom(TEMPLATE)
-            .where(TEMPLATE_GENRE_ID.eq(UUID.fromString(genre)))
-            .fetch(::toTemplate)
+        jdbi.withHandle<List<Template>, Exception> { handle ->
+            handle.createQuery("SELECT id, name, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE genre_id = :genreId")
+                .bind("genreId", UUID.fromString(genre))
+                .map(TemplateMapper())
+                .list()
+        }
 
     fun listByType(type: String): List<Template> =
-        dsl.selectFrom(TEMPLATE)
-            .where(TEMPLATE_TYPE.eq(type))
-            .fetch(::toTemplate)
+        jdbi.withHandle<List<Template>, Exception> { handle ->
+            handle.createQuery("SELECT id, name, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE type = :type")
+                .bind("type", type)
+                .map(TemplateMapper())
+                .list()
+        }
 
     fun listByGenreAndType(genreId: UUID, type: String): List<Template> =
-        dsl.selectFrom(TEMPLATE)
-            .where(TEMPLATE_GENRE_ID.eq(genreId).and(TEMPLATE_TYPE.eq(type)))
-            .fetch(::toTemplate)
+        jdbi.withHandle<List<Template>, Exception> { handle ->
+            handle.createQuery("SELECT id, name, description, json_schema, type, gm_id, genre_id, created_at FROM template WHERE genre_id = :genreId AND type = :type")
+                .bind("genreId", genreId)
+                .bind("type", type)
+                .map(TemplateMapper())
+                .list()
+        }
 
     fun persist(template: Template) {
-        dsl.insertInto(TEMPLATE)
-            .set(TEMPLATE_ID, template.id)
-            .set(TEMPLATE_NAME, template.title)
-            .set(TEMPLATE_DESCRIPTION, template.description)
-            .set(TEMPLATE_JSON_SCHEMA, template.jsonSchema)
-            .set(TEMPLATE_TYPE, template.type)
-            .set(TEMPLATE_GM_ID, template.gm?.id)
-            .set(TEMPLATE_GENRE_ID, template.genre?.id)
-            .set(TEMPLATE_CREATED_AT, template.createdAt)
-            .execute()
+        require(!template.type.isNullOrBlank()) { "Template.type must not be null or blank" }
+        jdbi.useHandle<Exception> { handle ->
+            if (template.createdAt != null) {
+                handle.createUpdate("INSERT INTO template (id, name, description, json_schema, type, gm_id, genre_id, created_at) VALUES (:id, :name, :description, :jsonSchema::jsonb, :type, :gmId, :genreId, :createdAt)")
+                    .bind("id", template.id)
+                    .bind("name", template.title)
+                    .bind("description", template.description)
+                    .bind("jsonSchema", template.jsonSchema)
+                    .bind("type", template.type)
+                    .bind("gmId", template.gm?.id)
+                    .bind("genreId", template.genre?.id)
+                    .bind("createdAt", template.createdAt)
+                    .execute()
+            } else {
+                handle.createUpdate("INSERT INTO template (id, name, description, json_schema, type, gm_id, genre_id) VALUES (:id, :name, :description, :jsonSchema::jsonb, :type, :gmId, :genreId)")
+                    .bind("id", template.id)
+                    .bind("name", template.title)
+                    .bind("description", template.description)
+                    .bind("jsonSchema", template.jsonSchema)
+                    .bind("type", template.type)
+                    .bind("gmId", template.gm?.id)
+                    .bind("genreId", template.genre?.id)
+                    .execute()
+            }
+        }
     }
 
-    private fun toTemplate(record: Record): Template = Template().apply {
-        id = record.get(TEMPLATE_ID)
-        title = record.get(TEMPLATE_NAME)
-        description = record.get(TEMPLATE_DESCRIPTION)
-        createdAt = record.get(TEMPLATE_CREATED_AT)
-        type = record.get(TEMPLATE_TYPE)
-        jsonSchema = record.get(TEMPLATE_JSON_SCHEMA)
-        gm = org.fg.ttrpg.account.GM().apply { id = record.get(TEMPLATE_GM_ID) }
-        genre = org.fg.ttrpg.genre.Genre().apply { id = record.get(TEMPLATE_GENRE_ID) }
+    private class TemplateMapper : RowMapper<Template> {
+        override fun map(rs: ResultSet, ctx: StatementContext): Template = Template().apply {
+            id = rs.getObject("id", UUID::class.java)
+            title = rs.getString("name")
+            description = rs.getString("description")
+            jsonSchema = rs.getString("json_schema")
+            type = rs.getString("type")
+            createdAt = rs.getTimestamp("created_at").toInstant()
+            gm = GM().apply { id = rs.getObject("gm_id", UUID::class.java) }
+            genre = Genre().apply { id = rs.getObject("genre_id", UUID::class.java) }
+        }
     }
 }

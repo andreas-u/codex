@@ -1,12 +1,40 @@
+# Default configuration
 quarkus:
-  datasource:
-    db-kind: postgresql
-    username: postgres
-    password: postgres
-    jdbc:
-      url: jdbc:postgresql://localhost:5432/codex
   liquibase:
     change-log: db/changelog/db.changelog-master.yaml
     migrate-at-start: true
-  jooq:
-    dialect: POSTGRES
+
+# JWT Configuration - applies to all profiles
+mp:
+  jwt:
+    verify:
+      issuer: https://auth.ulmer.biz/realms/terra
+      publickey:
+        location: https://auth.ulmer.biz/realms/terra/protocol/openid-connect/certs
+
+"%prod":
+  quarkus:
+    datasource:
+      db-kind: postgresql
+      username: postgres
+      password: postgres
+      jdbc:
+        url: jdbc:postgresql://localhost:5432/codex
+
+"%dev":
+  quarkus:
+    datasource:
+      db-kind: postgresql
+      devservices:
+        enabled: true
+    liquibase:
+      migrate-at-start: true
+
+"%test":
+  quarkus:
+    datasource:
+      db-kind: postgresql
+      devservices:
+        enabled: true
+    liquibase:
+      migrate-at-start: true

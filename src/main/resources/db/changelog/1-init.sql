@@ -12,14 +12,14 @@ CREATE TABLE setting (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
-    gm_id UUID NOT NULL REFERENCES gm(id)
+    gm_id UUID NOT NULL REFERENCES gm(id) ON DELETE CASCADE
 );
 
 CREATE TABLE genre (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
     code VARCHAR(255) NOT NULL UNIQUE,
-    setting_id UUID NOT NULL REFERENCES setting(id)
+    setting_id UUID NOT NULL REFERENCES setting(id) ON DELETE CASCADE
 );
 
 CREATE TABLE template (
@@ -30,7 +30,7 @@ CREATE TABLE template (
     type VARCHAR(255) NOT NULL,
     json_schema JSONB,
     genre_id UUID NOT NULL REFERENCES genre(id),
-    gm_id UUID NOT NULL REFERENCES gm(id)
+    gm_id UUID NOT NULL REFERENCES gm(id) ON DELETE CASCADE
 );
 CREATE INDEX template_json_schema_gin_idx ON template USING GIN (json_schema);
 
@@ -41,14 +41,14 @@ CREATE TABLE setting_object (
     description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     payload JSONB,
-    template_id UUID REFERENCES template(id),
-    setting_id UUID NOT NULL REFERENCES setting(id),
-    gm_id UUID NOT NULL REFERENCES gm(id)
+    template_id UUID REFERENCES template(id) ON DELETE SET NULL,
+    setting_id UUID NOT NULL REFERENCES setting(id) ON DELETE CASCADE,
+    gm_id UUID NOT NULL REFERENCES gm(id) ON DELETE CASCADE
 );
 CREATE INDEX setting_object_payload_gin_idx ON setting_object USING GIN (payload);
 
 CREATE TABLE setting_object_tags (
-    setting_object_id UUID NOT NULL REFERENCES setting_object(id),
+    setting_object_id UUID NOT NULL REFERENCES setting_object(id) ON DELETE CASCADE,
     tag VARCHAR(255) NOT NULL
 );
 
@@ -56,8 +56,8 @@ CREATE TABLE campaign (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
     started_on TIMESTAMP NOT NULL DEFAULT now(),
-    gm_id UUID NOT NULL REFERENCES gm(id),
-    setting_id UUID NOT NULL REFERENCES setting(id)
+    gm_id UUID NOT NULL REFERENCES gm(id) ON DELETE CASCADE,
+    setting_id UUID NOT NULL REFERENCES setting(id) ON DELETE CASCADE
 );
 
 CREATE TABLE campaign_object (
@@ -65,10 +65,10 @@ CREATE TABLE campaign_object (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
-    campaign_id UUID NOT NULL REFERENCES campaign(id),
-    setting_object_id UUID NOT NULL REFERENCES setting_object(id),
-    gm_id UUID NOT NULL REFERENCES gm(id),
-    template_id UUID REFERENCES template(id),
+    campaign_id UUID NOT NULL REFERENCES campaign(id) ON DELETE CASCADE,
+    setting_object_id UUID NOT NULL REFERENCES setting_object(id) ON DELETE CASCADE,
+    gm_id UUID NOT NULL REFERENCES gm(id) ON DELETE CASCADE,
+    template_id UUID REFERENCES template(id) ON DELETE SET NULL,
     override_mode VARCHAR(32),
     payload JSONB
 );

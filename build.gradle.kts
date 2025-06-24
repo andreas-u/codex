@@ -2,11 +2,7 @@ plugins {
     kotlin("jvm") version "2.1.21"
     kotlin("plugin.allopen") version "2.1.21"
     id("io.quarkus")
-    id("nu.studer.jooq") version "9.0"
 }
-
-import org.jooq.meta.jaxb.Logging
-import org.jooq.meta.jaxb.Property
 
 repositories {
     mavenCentral()
@@ -24,16 +20,19 @@ dependencies {
     implementation("io.quarkus:quarkus-rest-jackson")
     implementation("io.quarkus:quarkus-kotlin")
     implementation("io.quarkus:quarkus-config-yaml")
-    implementation("io.quarkiverse.jooq:quarkus-jooq:2.0.1")
-    implementation("org.jooq:jooq:${jooqVersion}")
-    jooqGenerator("org.jooq:jooq-meta-extensions-liquibase:${jooqVersion}")
+    implementation("org.jdbi:jdbi3-core:3.41.3")
+    implementation("org.jdbi:jdbi3-kotlin:3.41.3")
+    implementation("org.jdbi:jdbi3-kotlin-sqlobject:3.41.3")
+    implementation("org.jdbi:jdbi3-postgres:3.41.3")
     implementation("io.quarkus:quarkus-liquibase")
     implementation("io.quarkus:quarkus-jdbc-postgresql")
     implementation("io.quarkus:quarkus-smallrye-jwt")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.quarkus:quarkus-arc")
     implementation("com.networknt:json-schema-validator:1.5.6")
-
+    implementation("io.quarkus:quarkus-logging-json")
+    implementation("org.jboss.logmanager:jboss-logmanager:3.0.4.Final")
+    testImplementation ("io.quarkus:quarkus-test-security-jwt")
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("io.kotest:kotest-assertions-core:5.8.1")
@@ -65,44 +64,3 @@ kotlin {
         javaParameters = true
     }
 }
-
-jooq {
-    version.set(jooqVersion)
-    edition.set(nu.studer.gradle.jooq.JooqEdition.OSS)
-    configurations {
-        create("main") {
-            jooqConfiguration.apply {
-                logging = Logging.WARN
-                generator.apply {
-                    database.apply {
-                        name = "org.jooq.meta.extensions.ddl.DDLDatabase"
-                        properties.addAll(listOf(
-                            Property().apply {
-                                key = "scripts"
-                                value = "1-init.sql,2-relationships.sql"
-                            },
-                            Property().apply {
-                                key = "rootPath"
-                                value = "src/main/resources/db/changelog"
-                            },
-                            Property().apply {
-                                key = "sort"
-                                value = "flyway"
-                            }
-                        ))
-                    }
-                    target.apply {
-                        directory = "$buildDir/generated-src/jooq"
-                    }
-                }
-            }
-        }
-    }
-}
-
-sourceSets {
-    named("main") {
-        java.srcDir("$buildDir/generated-src/jooq")
-    }
-}
-

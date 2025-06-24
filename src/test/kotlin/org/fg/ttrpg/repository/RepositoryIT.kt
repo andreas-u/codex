@@ -1,22 +1,21 @@
 package org.fg.ttrpg.repository
 
-import io.quarkus.test.junit.QuarkusTest
-import org.junit.jupiter.api.Disabled
+import io.kotest.matchers.shouldBe
 import io.quarkus.test.TestTransaction
+import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
 import org.fg.ttrpg.account.GM
 import org.fg.ttrpg.account.GMRepository
 import org.fg.ttrpg.setting.Setting
 import org.fg.ttrpg.setting.SettingRepository
-import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
-import java.util.UUID
+import java.util.*
 
-@Disabled("Tests disabled during build")
 @QuarkusTest
 class RepositoryIT {
     @Inject
     lateinit var gmRepo: GMRepository
+
     @Inject
     lateinit var settingRepo: SettingRepository
 

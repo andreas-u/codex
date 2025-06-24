@@ -2,34 +2,47 @@ package org.fg.ttrpg.account
 
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
-import org.jooq.DSLContext
-import org.jooq.Record
-import org.jooq.impl.DSL
+import org.jdbi.v3.core.Jdbi
+import org.jdbi.v3.core.mapper.RowMapper
+import org.jdbi.v3.core.statement.StatementContext
+import java.sql.ResultSet
 import java.util.UUID
 
 @ApplicationScoped
-class GMRepository @Inject constructor(private val dsl: DSLContext) {
-    private val GM = DSL.table("gm")
-    private val GM_ID = DSL.field("id", java.util.UUID::class.java)
-    private val GM_USERNAME = DSL.field("username", String::class.java)
-    private val GM_EMAIL = DSL.field("email", String::class.java)
+class GMRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun findById(id: UUID): GM? =
-        dsl.selectFrom(GM)
-            .where(GM_ID.eq(id))
-            .fetchOne(::toGM)
+        jdbi.withHandle<GM?, Exception> { handle ->
+            handle.createQuery("SELECT id, username, email FROM gm WHERE id = :id")
+                .bind("id", id)
+                .map(GMMapper())
+                .findOne()
+                .orElse(null)
+        }
 
     fun persist(gm: GM) {
-        dsl.insertInto(GM)
-            .set(GM_ID, gm.id)
-            .set(GM_USERNAME, gm.username)
-            .set(GM_EMAIL, gm.email)
-            .execute()
+        jdbi.useHandle<Exception> { handle ->
+            handle.createUpdate("INSERT INTO gm (id, username, email) VALUES (:id, :username, :email)")
+                .bind("id", gm.id)
+                .bind("username", gm.username)
+                .bind("email", gm.email)
+                .execute()
+        }
     }
 
-    private fun toGM(record: Record): GM = GM().apply {
-        id = record.get(GM_ID)
-        username = record.get(GM_USERNAME)
-        email = record.get(GM_EMAIL)
+    fun deleteById(gmId: java.util.UUID) {
+        jdbi.useHandle<Exception> { handle ->
+            handle.createUpdate("DELETE FROM gm WHERE id = :id")
+                .bind("id", gmId)
+                .execute()
+        }
+    }
+
+    private class GMMapper : RowMapper<GM> {
+        override fun map(rs: ResultSet, ctx: StatementContext): GM = GM().apply {
+            id = rs.getObject("id", UUID::class.java)
+            username = rs.getString("username")
+            email = rs.getString("email")
+        }
     }
 }

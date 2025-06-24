@@ -2,68 +2,112 @@ package org.fg.ttrpg.campaign
 
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
-import org.jooq.DSLContext
-import org.jooq.Record
-import org.jooq.impl.DSL
+import org.fg.ttrpg.account.GM
+import org.fg.ttrpg.setting.SettingObject
+import org.fg.ttrpg.setting.Template
+import org.jdbi.v3.core.Jdbi
+import org.jdbi.v3.core.mapper.RowMapper
+import org.jdbi.v3.core.statement.StatementContext
+import java.sql.ResultSet
+import java.time.Instant
 import java.util.UUID
 
 @ApplicationScoped
-class CampaignObjectRepository @Inject constructor(private val dsl: DSLContext) {
-    private val CAMPAIGN_OBJECT = DSL.table("campaign_object")
-    private val CO_ID = DSL.field("id", java.util.UUID::class.java)
-    private val CO_NAME = DSL.field("name", String::class.java)
-    private val CO_DESCRIPTION = DSL.field("description", String::class.java)
-    private val CO_CAMPAIGN_ID = DSL.field("campaign_id", java.util.UUID::class.java)
-    private val CO_SETTING_OBJECT_ID = DSL.field("setting_object_id", java.util.UUID::class.java)
-    private val CO_GM_ID = DSL.field("gm_id", java.util.UUID::class.java)
-    private val CO_TEMPLATE_ID = DSL.field("template_id", java.util.UUID::class.java)
-    private val CO_OVERRIDE_MODE = DSL.field("override_mode", String::class.java)
-    private val CO_PAYLOAD = DSL.field("payload", String::class.java)
-    private val CO_CREATED_AT = DSL.field("created_at", java.time.Instant::class.java)
+class CampaignObjectRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun listByCampaignAndGm(campaignId: UUID, gmId: UUID): List<CampaignObject> =
-        dsl.selectFrom(CAMPAIGN_OBJECT)
-            .where(
-                CO_CAMPAIGN_ID.eq(campaignId)
-                    .and(CO_GM_ID.eq(gmId))
-            )
-            .fetch(::toObject)
+        jdbi.withHandle<List<CampaignObject>, Exception> { handle ->
+            handle.createQuery("SELECT id, name, description, campaign_id, setting_object_id, gm_id, template_id, override_mode, payload, created_at FROM campaign_object WHERE campaign_id = :campaignId AND gm_id = :gmId")
+                .bind("campaignId", campaignId)
+                .bind("gmId", gmId)
+                .map(CampaignObjectMapper())
+                .list()
+        }
 
     fun findById(id: UUID): CampaignObject? =
-        dsl.selectFrom(CAMPAIGN_OBJECT)
-            .where(CO_ID.eq(id))
-            .fetchOne(::toObject)
+        jdbi.withHandle<CampaignObject?, Exception> { handle ->
+            handle.createQuery("SELECT id, name, description, campaign_id, setting_object_id, gm_id, template_id, override_mode, payload, created_at FROM campaign_object WHERE id = :id")
+                .bind("id", id)
+                .map(CampaignObjectMapper())
+                .findOne()
+                .orElse(null)
+        }
 
     fun findByIdForGm(id: UUID, gmId: UUID): CampaignObject? =
-        dsl.selectFrom(CAMPAIGN_OBJECT)
-            .where(CO_ID.eq(id).and(CO_GM_ID.eq(gmId)))
-            .fetchOne(::toObject)
+        jdbi.withHandle<CampaignObject?, Exception> { handle ->
+            handle.createQuery("SELECT id, name, description, campaign_id, setting_object_id, gm_id, template_id, override_mode, payload, created_at FROM campaign_object WHERE id = :id AND gm_id = :gmId")
+                .bind("id", id)
+                .bind("gmId", gmId)
+                .map(CampaignObjectMapper())
+                .findOne()
+                .orElse(null)
+        }
 
     fun persist(obj: CampaignObject) {
-        dsl.insertInto(CAMPAIGN_OBJECT)
-            .set(CO_ID, obj.id)
-            .set(CO_NAME, obj.title)
-            .set(CO_DESCRIPTION, obj.description)
-            .set(CO_CAMPAIGN_ID, obj.campaign?.id)
-            .set(CO_SETTING_OBJECT_ID, obj.settingObject?.id)
-            .set(CO_GM_ID, obj.gm?.id)
-            .set(CO_TEMPLATE_ID, obj.template?.id)
-            .set(CO_OVERRIDE_MODE, obj.overrideMode)
-            .set(CO_PAYLOAD, obj.payload)
-            .set(CO_CREATED_AT, obj.createdAt)
-            .execute()
+        jdbi.useHandle<Exception> { handle ->
+            handle.createUpdate("INSERT INTO campaign_object (id, name, description, campaign_id, setting_object_id, gm_id, template_id, override_mode, payload, created_at) VALUES (:id, :name, :description, :campaignId, :settingObjectId, :gmId, :templateId, :overrideMode, :payload::jsonb, :createdAt)")
+                .bind("id", obj.id)
+                .bind("name", obj.title)
+                .bind("description", obj.description)
+                .bind("campaignId", obj.campaign?.id)
+                .bind("settingObjectId", obj.settingObject?.id)
+                .bind("gmId", obj.gm?.id)
+                .bind("templateId", obj.template?.id)
+                .bind("overrideMode", obj.overrideMode)
+                .bind("payload", obj.payload)
+                .bind("createdAt", obj.createdAt)
+                .execute()
+        }
     }
 
-    private fun toObject(record: Record): CampaignObject = CampaignObject().apply {
-        id = record.get(CO_ID)
-        title = record.get(CO_NAME)
-        description = record.get(CO_DESCRIPTION)
-        campaign = Campaign().apply { id = record.get(CO_CAMPAIGN_ID) }
-        settingObject = org.fg.ttrpg.setting.SettingObject().apply { id = record.get(CO_SETTING_OBJECT_ID) }
-        gm = org.fg.ttrpg.account.GM().apply { id = record.get(CO_GM_ID) }
-        template = org.fg.ttrpg.setting.Template().apply { id = record.get(CO_TEMPLATE_ID) }
-        overrideMode = record.get(CO_OVERRIDE_MODE)
-        payload = record.get(CO_PAYLOAD)
-        createdAt = record.get(CO_CREATED_AT)
+    fun updatePayload(id: UUID, payload: String) {
+        jdbi.useHandle<Exception> { handle ->
+            handle.createUpdate("UPDATE campaign_object SET payload = :payload WHERE id = :id")
+                .bind("id", id)
+                .bind("payload", payload)
+                .execute()
+        }
+    }
+
+    fun update(obj: CampaignObject) {
+        jdbi.useHandle<Exception> { handle ->
+            handle.createUpdate("""
+                UPDATE campaign_object SET
+                    name = :name,
+                    description = :description,
+                    campaign_id = :campaignId,
+                    setting_object_id = :settingObjectId,
+                    gm_id = :gmId,
+                    template_id = :templateId,
+                    override_mode = :overrideMode,
+                    payload = :payload::jsonb
+                WHERE id = :id
+            """)
+                .bind("id", obj.id)
+                .bind("name", obj.title)
+                .bind("description", obj.description)
+                .bind("campaignId", obj.campaign?.id)
+                .bind("settingObjectId", obj.settingObject?.id)
+                .bind("gmId", obj.gm?.id)
+                .bind("templateId", obj.template?.id)
+                .bind("overrideMode", obj.overrideMode)
+                .bind("payload", obj.payload)
+                .execute()
+        }
+    }
+
+    private class CampaignObjectMapper : RowMapper<CampaignObject> {
+        override fun map(rs: ResultSet, ctx: StatementContext): CampaignObject = CampaignObject().apply {
+            id = rs.getObject("id", UUID::class.java)
+            title = rs.getString("name")
+            description = rs.getString("description")
+            campaign = Campaign().apply { id = rs.getObject("campaign_id", UUID::class.java) }
+            settingObject = SettingObject().apply { id = rs.getObject("setting_object_id", UUID::class.java) }
+            gm = GM().apply { id = rs.getObject("gm_id", UUID::class.java) }
+            template = Template().apply { id = rs.getObject("template_id", UUID::class.java) }
+            overrideMode = rs.getString("override_mode")
+            payload = rs.getString("payload")
+            createdAt = rs.getTimestamp("created_at").toInstant()
+        }
     }
 }

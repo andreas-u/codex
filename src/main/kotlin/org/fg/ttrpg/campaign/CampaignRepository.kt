@@ -2,50 +2,64 @@ package org.fg.ttrpg.campaign
 
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
-import org.jooq.DSLContext
-import org.jooq.Record
-import org.jooq.impl.DSL
+import org.fg.ttrpg.account.GM
+import org.fg.ttrpg.setting.Setting
+import org.jdbi.v3.core.Jdbi
+import org.jdbi.v3.core.mapper.RowMapper
+import org.jdbi.v3.core.statement.StatementContext
+import java.sql.ResultSet
+import java.time.Instant
 import java.util.UUID
 
 @ApplicationScoped
-class CampaignRepository @Inject constructor(private val dsl: DSLContext) {
-    private val CAMPAIGN = DSL.table("campaign")
-    private val CAMPAIGN_ID = DSL.field("id", java.util.UUID::class.java)
-    private val CAMPAIGN_NAME = DSL.field("name", String::class.java)
-    private val CAMPAIGN_STARTED_ON = DSL.field("started_on", java.time.Instant::class.java)
-    private val CAMPAIGN_GM_ID = DSL.field("gm_id", java.util.UUID::class.java)
-    private val CAMPAIGN_SETTING_ID = DSL.field("setting_id", java.util.UUID::class.java)
+class CampaignRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun listByGm(gmId: UUID): List<Campaign> =
-        dsl.selectFrom(CAMPAIGN)
-            .where(CAMPAIGN_GM_ID.eq(gmId))
-            .fetch(::toCampaign)
+        jdbi.withHandle<List<Campaign>, Exception> { handle ->
+            handle.createQuery("SELECT id, title, started_on, gm_id, setting_id FROM campaign WHERE gm_id = :gmId")
+                .bind("gmId", gmId)
+                .map(CampaignMapper())
+                .list()
+        }
 
     fun findById(id: UUID): Campaign? =
-        dsl.selectFrom(CAMPAIGN)
-            .where(CAMPAIGN_ID.eq(id))
-            .fetchOne(::toCampaign)
+        jdbi.withHandle<Campaign?, Exception> { handle ->
+            handle.createQuery("SELECT id, name, started_on, gm_id, setting_id FROM campaign WHERE id = :id")
+                .bind("id", id)
+                .map(CampaignMapper())
+                .findOne()
+                .orElse(null)
+        }
 
     fun findByIdForGm(id: UUID, gmId: UUID): Campaign? =
-        dsl.selectFrom(CAMPAIGN)
-            .where(CAMPAIGN_ID.eq(id).and(CAMPAIGN_GM_ID.eq(gmId)))
-            .fetchOne(::toCampaign)
+        jdbi.withHandle<Campaign?, Exception> { handle ->
+            handle.createQuery("SELECT id, name, started_on, gm_id, setting_id FROM campaign WHERE id = :id AND gm_id = :gmId")
+                .bind("id", id)
+                .bind("gmId", gmId)
+                .map(CampaignMapper())
+                .findOne()
+                .orElse(null)
+        }
 
     fun persist(campaign: Campaign) {
-        dsl.insertInto(CAMPAIGN)
-            .set(CAMPAIGN_ID, campaign.id)
-            .set(CAMPAIGN_NAME, campaign.title)
-            .set(CAMPAIGN_STARTED_ON, campaign.startedOn)
-            .set(CAMPAIGN_GM_ID, campaign.gm?.id)
-            .set(CAMPAIGN_SETTING_ID, campaign.setting?.id)
-            .execute()
+        jdbi.useHandle<Exception> { handle ->
+            handle.createUpdate("INSERT INTO campaign (id, name, started_on, gm_id, setting_id) VALUES (:id, :name, :startedOn, :gmId, :settingId)")
+                .bind("id", campaign.id)
+                .bind("name", campaign.title)
+                .bind("startedOn", campaign.startedOn)
+                .bind("gmId", campaign.gm?.id)
+                .bind("settingId", campaign.setting?.id)
+                .execute()
+        }
     }
 
-    private fun toCampaign(record: Record): Campaign = Campaign().apply {
-        id = record.get(CAMPAIGN_ID)
-        title = record.get(CAMPAIGN_NAME)
-        startedOn = record.get(CAMPAIGN_STARTED_ON)
-        gm = org.fg.ttrpg.account.GM().apply { id = record.get(CAMPAIGN_GM_ID) }
-        setting = org.fg.ttrpg.setting.Setting().apply { id = record.get(CAMPAIGN_SETTING_ID) }
+    private class CampaignMapper : RowMapper<Campaign> {
+        override fun map(rs: ResultSet, ctx: StatementContext): Campaign = Campaign().apply {
+            id = rs.getObject("id", UUID::class.java)
+            title = rs.getString("name")
+            startedOn = rs.getTimestamp("started_on")?.toInstant()
+            gm = GM().apply { id = rs.getObject("gm_id", UUID::class.java) }
+            setting = Setting().apply { id = rs.getObject("setting_id", UUID::class.java) }
+        }
     }
 }

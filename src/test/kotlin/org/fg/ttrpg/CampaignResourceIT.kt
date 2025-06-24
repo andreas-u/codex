@@ -1,24 +1,27 @@
 package org.fg.ttrpg
 
 import io.quarkus.test.junit.QuarkusTest
-import org.junit.jupiter.api.Disabled
+import io.quarkus.test.security.TestSecurity
+import io.quarkus.test.security.jwt.Claim
+import io.quarkus.test.security.jwt.JwtSecurity
 import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
 import jakarta.inject.Inject
 import jakarta.transaction.Transactional
 import org.fg.ttrpg.account.GM
 import org.fg.ttrpg.account.GMRepository
-import org.fg.ttrpg.campaign.*
+import org.fg.ttrpg.campaign.Campaign
+import org.fg.ttrpg.campaign.CampaignObject
+import org.fg.ttrpg.campaign.CampaignObjectRepository
+import org.fg.ttrpg.campaign.CampaignRepository
 import org.fg.ttrpg.setting.*
 import org.hamcrest.CoreMatchers.equalTo
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import io.quarkus.test.TestTransaction
-import io.smallrye.jwt.build.Jwt
-import java.util.UUID
+import java.util.*
 
 
-
-@Disabled("Tests disabled during build")
 @QuarkusTest
 class CampaignResourceIT {
     @Inject
@@ -39,7 +42,9 @@ class CampaignResourceIT {
     @Inject
     lateinit var campaignObjectRepo: CampaignObjectRepository
 
-    private fun token(gmId: UUID) = Jwt.claim("gmId", gmId.toString()).sign()
+    @Inject
+    lateinit var genreRepo: org.fg.ttrpg.genre.GenreRepository
+
 
     @Transactional
     fun createGm(id: UUID) {
@@ -48,6 +53,18 @@ class CampaignResourceIT {
             username = "gm-$id"
         }
         gmRepo.persist(gm)
+    }
+
+    @Transactional
+    fun createGenre(id: UUID, setting: Setting): org.fg.ttrpg.genre.Genre {
+        val genre = org.fg.ttrpg.genre.Genre().apply {
+            this.id = id
+            title = "genre"
+            code = "gen-${id.toString().substring(0, 8)}"  // Make code unique by including part of the UUID
+            this.setting = setting
+        }
+        genreRepo.insert(genre)
+        return genre
     }
 
     @Transactional
@@ -65,11 +82,16 @@ class CampaignResourceIT {
     @Transactional
     fun createTemplate(id: UUID, gmId: UUID, schema: String): Template {
         val gm = gmRepo.findById(gmId)
+        // Create a setting and genre for the template
+        val setting = createSetting(UUID.randomUUID(), gmId)
+        val genre = createGenre(UUID.randomUUID(), setting)
         val template = Template().apply {
             this.id = id
             title = "tpl"
+            type = "test"  // Setting the required type field
             jsonSchema = schema
             this.gm = gm
+            this.genre = genre  // Setting the required genre field
         }
         templateRepo.persist(template)
         return template
@@ -86,6 +108,7 @@ class CampaignResourceIT {
             this.template = template
             this.gm = gm
             payload = "{}"
+            createdAt = java.time.Instant.now()  // Setting the required createdAt field
         }
         settingObjectRepo.persist(obj)
         return obj
@@ -97,6 +120,7 @@ class CampaignResourceIT {
         val camp = Campaign().apply {
             this.id = id
             title = "camp"
+            startedOn = java.time.Instant.now()  // Setting the required startedOn field
             this.gm = gm
             this.setting = setting
         }
@@ -105,7 +129,13 @@ class CampaignResourceIT {
     }
 
     @Transactional
-    fun createCampaignObject(id: UUID, campaign: Campaign, settingObj: SettingObject, gmId: UUID, template: Template): CampaignObject {
+    fun createCampaignObject(
+        id: UUID,
+        campaign: Campaign,
+        settingObj: SettingObject,
+        gmId: UUID,
+        template: Template
+    ): CampaignObject {
         val gm = gmRepo.findById(gmId)
         val obj = CampaignObject().apply {
             this.id = id
@@ -115,15 +145,39 @@ class CampaignResourceIT {
             this.template = template
             this.gm = gm
             payload = "{}"
+            createdAt = java.time.Instant.now()  // Setting the required createdAt field
         }
         campaignObjectRepo.persist(obj)
         return obj
     }
 
+    val testGmId1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    val testGmId2 = UUID.fromString("00000000-0000-0000-0000-000000000002")
+
+    @BeforeEach
+    fun setupGm() {
+        createGm(testGmId1)
+        createGm(testGmId2)
+    }
+
+    @AfterEach
+    fun cleanup() {
+        gmRepo.deleteById(testGmId1)
+        gmRepo.deleteById(testGmId2)
+    }
+
     @Test
+    @TestSecurity(user = "userJwt", roles = ["viewer"])
+    @JwtSecurity(
+        claims = [
+            Claim(key = "email", value = "user@gmail.com"),
+            Claim(key = "sub", value = "userJwt"),
+            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+        ]
+    )
     fun patchObject_success() {
-        val gmId = UUID.randomUUID()
-        createGm(gmId)
+        val gmId = testGmId1
+        // createGm(gmId) -- now handled in @BeforeEach
         val setting = createSetting(UUID.randomUUID(), gmId)
         val template = createTemplate(UUID.randomUUID(), gmId, "{}")
         val settingObj = createSettingObject(UUID.randomUUID(), setting, template, gmId)
@@ -133,18 +187,24 @@ class CampaignResourceIT {
         given()
             .contentType(ContentType.JSON)
             .body("{\"name\":\"new\"}")
-            .auth().oauth2(token(gmId))
             .`when`().patch("/api/campaigns/${campaign.id}/objects/${campObj.id}")
             .then().statusCode(200)
             .body("id", equalTo(campObj.id.toString()))
 
-        verifyPayload(campObj.id!!, "{\"name\":\"new\"}")
+        verifyPayload(campObj.id!!, "{\"name\": \"new\"}")
     }
 
     @Test
+    @TestSecurity(user = "userJwt", roles = ["viewer"])
+    @JwtSecurity(
+        claims = [
+            Claim(key = "email", value = "user@gmail.com"),
+            Claim(key = "sub", value = "userJwt"),
+            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+        ]
+    )
     fun patchObject_validationFailure() {
-        val gmId = UUID.randomUUID()
-        createGm(gmId)
+        val gmId = testGmId1
         val setting = createSetting(UUID.randomUUID(), gmId)
         val template = createTemplate(
             UUID.randomUUID(),
@@ -158,17 +218,22 @@ class CampaignResourceIT {
         given()
             .contentType(ContentType.JSON)
             .body("{\"name\":1}")
-            .auth().oauth2(token(gmId))
             .`when`().patch("/api/campaigns/${campaign.id}/objects/${campObj.id}")
             .then().statusCode(422)
     }
 
     @Test
+    @TestSecurity(user = "userJwt", roles = ["viewer"])
+    @JwtSecurity(
+        claims = [
+            Claim(key = "email", value = "user@gmail.com"),
+            Claim(key = "sub", value = "userJwt"),
+            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000002")
+        ]
+    )
     fun tenantIsolation() {
-        val gm1 = UUID.randomUUID()
-        val gm2 = UUID.randomUUID()
-        createGm(gm1)
-        createGm(gm2)
+        val gm1 = testGmId1
+        val gm2 = testGmId2
         val setting = createSetting(UUID.randomUUID(), gm1)
         val template = createTemplate(UUID.randomUUID(), gm1, "{}")
         val settingObj = createSettingObject(UUID.randomUUID(), setting, template, gm1)
@@ -178,12 +243,11 @@ class CampaignResourceIT {
         given()
             .contentType(ContentType.JSON)
             .body("{}")
-            .auth().oauth2(token(gm2))
             .`when`().patch("/api/campaigns/${campaign.id}/objects/${campObj.id}")
             .then().statusCode(404)
     }
 
-    @TestTransaction
+    @Transactional
     fun verifyPayload(id: UUID, expected: String) {
         val obj = campaignObjectRepo.findById(id)
         org.junit.jupiter.api.Assertions.assertEquals(expected, obj!!.payload)

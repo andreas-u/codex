@@ -2,71 +2,90 @@ package org.fg.ttrpg.setting
 
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
-import org.jooq.DSLContext
-import org.jooq.Record
-import org.jooq.impl.DSL
+import org.fg.ttrpg.account.GM
+import org.jdbi.v3.core.Jdbi
+import org.jdbi.v3.core.mapper.RowMapper
+import org.jdbi.v3.core.statement.StatementContext
+import java.sql.ResultSet
+import java.time.Instant
 import java.util.UUID
 
 @ApplicationScoped
-class SettingObjectRepository @Inject constructor(private val dsl: DSLContext) {
-    private val SETTING_OBJECT = DSL.table("setting_object")
-    private val SO_ID = DSL.field("id", java.util.UUID::class.java)
-    private val SO_SLUG = DSL.field("slug", String::class.java)
-    private val SO_NAME = DSL.field("name", String::class.java)
-    private val SO_DESCRIPTION = DSL.field("description", String::class.java)
-    private val SO_PAYLOAD = DSL.field("payload", String::class.java)
-    private val SO_SETTING_ID = DSL.field("setting_id", java.util.UUID::class.java)
-    private val SO_TEMPLATE_ID = DSL.field("template_id", java.util.UUID::class.java)
-    private val SO_GM_ID = DSL.field("gm_id", java.util.UUID::class.java)
-    private val SO_CREATED_AT = DSL.field("created_at", java.time.Instant::class.java)
+class SettingObjectRepository @Inject constructor(private val jdbi: Jdbi) {
 
     fun listBySettingAndGm(settingId: UUID, gmId: UUID): List<SettingObject> =
-        dsl.selectFrom(SETTING_OBJECT)
-            .where(
-                SO_SETTING_ID.eq(settingId)
-                    .and(SO_GM_ID.eq(gmId))
-            )
-            .fetch(::toObject)
+        jdbi.withHandle<List<SettingObject>, Exception> { handle ->
+            handle.createQuery("SELECT id, slug, name, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE setting_id = :settingId AND gm_id = :gmId")
+                .bind("settingId", settingId)
+                .bind("gmId", gmId)
+                .map(SettingObjectMapper())
+                .list()
+        }
 
     fun listByGm(gmId: UUID): List<SettingObject> =
-        dsl.selectFrom(SETTING_OBJECT)
-            .where(SO_GM_ID.eq(gmId))
-            .fetch(::toObject)
+        jdbi.withHandle<List<SettingObject>, Exception> { handle ->
+            handle.createQuery("SELECT id, slug, name, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE gm_id = :gmId")
+                .bind("gmId", gmId)
+                .map(SettingObjectMapper())
+                .list()
+        }
 
     fun findById(id: UUID): SettingObject? =
-        dsl.selectFrom(SETTING_OBJECT)
-            .where(SO_ID.eq(id))
-            .fetchOne(::toObject)
+        jdbi.withHandle<SettingObject?, Exception> { handle ->
+            handle.createQuery("SELECT id, slug, name, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE id = :id")
+                .bind("id", id)
+                .map(SettingObjectMapper())
+                .findOne()
+                .orElse(null)
+        }
 
     fun findByIdForGm(id: UUID, gmId: UUID): SettingObject? =
-        dsl.selectFrom(SETTING_OBJECT)
-            .where(SO_ID.eq(id).and(SO_GM_ID.eq(gmId)))
-            .fetchOne(::toObject)
+        jdbi.withHandle<SettingObject?, Exception> { handle ->
+            handle.createQuery("SELECT id, slug, name, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE id = :id AND gm_id = :gmId")
+                .bind("id", id)
+                .bind("gmId", gmId)
+                .map(SettingObjectMapper())
+                .findOne()
+                .orElse(null)
+        }
 
     fun persist(obj: SettingObject) {
-        dsl.insertInto(SETTING_OBJECT)
-            .set(SO_ID, obj.id)
-            .set(SO_SLUG, obj.slug)
-            .set(SO_NAME, obj.title)
-            .set(SO_DESCRIPTION, obj.description)
-            .set(SO_PAYLOAD, obj.payload)
-            .set(SO_SETTING_ID, obj.setting?.id)
-            .set(SO_TEMPLATE_ID, obj.template?.id)
-            .set(SO_GM_ID, obj.gm?.id)
-            .set(SO_CREATED_AT, obj.createdAt)
-            .execute()
+        if (obj.id == null) {
+            obj.id = java.util.UUID.randomUUID()
+        }
+        if (obj.createdAt == null) {
+            obj.createdAt = java.time.Instant.now()
+        }
+        jdbi.useHandle<Exception> { handle ->
+            handle.createUpdate("INSERT INTO setting_object (id, slug, name, description, payload, setting_id, template_id, gm_id, created_at) VALUES (:id, :slug, :name, :description, :payload::jsonb, :settingId, :templateId, :gmId, :createdAt)")
+                .bind("id", obj.id)
+                .bind("slug", obj.slug)
+                .bind("name", obj.title)
+                .bind("description", obj.description)
+                .bind("payload", obj.payload)
+                .bind("settingId", obj.setting?.id)
+                .bind("templateId", obj.template?.id)
+                .bind("gmId", obj.gm?.id)
+                .bind("createdAt", obj.createdAt)
+                .execute()
+        }
         // tags are ignored for brevity
     }
 
-    private fun toObject(record: Record): SettingObject = SettingObject().apply {
-        id = record.get(SO_ID)
-        slug = record.get(SO_SLUG)
-        title = record.get(SO_NAME)
-        description = record.get(SO_DESCRIPTION)
-        payload = record.get(SO_PAYLOAD)
-        createdAt = record.get(SO_CREATED_AT)
-        setting = Setting().apply { id = record.get(SO_SETTING_ID) }
-        template = record.get(SO_TEMPLATE_ID)?.let { Template().apply { id = it } }
-        gm = org.fg.ttrpg.account.GM().apply { id = record.get(SO_GM_ID) }
+    private class SettingObjectMapper : RowMapper<SettingObject> {
+        override fun map(rs: ResultSet, ctx: StatementContext): SettingObject = SettingObject().apply {
+            id = rs.getObject("id", UUID::class.java)
+            slug = rs.getString("slug")
+            title = rs.getString("name")
+            description = rs.getString("description")
+            payload = rs.getString("payload")
+            createdAt = rs.getTimestamp("created_at").toInstant()
+            setting = Setting().apply { id = rs.getObject("setting_id", UUID::class.java) }
+            val templateId = rs.getObject("template_id", UUID::class.java)
+            if (templateId != null) {
+                template = Template().apply { id = templateId }
+            }
+            gm = GM().apply { id = rs.getObject("gm_id", UUID::class.java) }
+        }
     }
 }

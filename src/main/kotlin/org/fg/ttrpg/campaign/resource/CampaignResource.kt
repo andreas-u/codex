@@ -50,11 +50,20 @@ class CampaignResource @Inject constructor(
         val merged = merge.merge(original, patch)
         val node = mapper.readTree(merged)
         val templateId = obj.template?.id ?: obj.settingObject?.id
-        if (templateId != null) {
-            validator.validate(templateId, node)
+        return runCatching {
+            if (templateId != null) {
+                validator.validate(templateId, node)
+            }
+            obj.payload = merged
+            objectRepo.update(obj)
+            obj.toDto()
+        }.getOrElse { e ->
+            if (e is org.fg.ttrpg.infra.validation.TemplateValidationException) {
+                throw jakarta.ws.rs.WebApplicationException(e.message, 422)
+            } else {
+                throw e
+            }
         }
-        obj.payload = merged
-        return obj.toDto()
     }
 }
 
