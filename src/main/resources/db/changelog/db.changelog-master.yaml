@@ -13,3 +13,24 @@ databaseChangeLog:
         - sqlFile:
             path: 2-relationships.sql
             relativeToChangelogFile: true
+  - changeSet:
+      id: 3-calendar-system
+      author: codex
+      changes:
+        - sqlFile:
+            path: 3-calendar_system.sql
+            relativeToChangelogFile: true
+  - changeSet:
+      id: 4-timeline-event
+      author: codex
+      changes:
+        - sqlFile:
+            path: 4-timeline_event.sql
+            relativeToChangelogFile: true
+  - changeSet:
+      id: 5-campaign-event-override
+      author: codex
+      changes:
+        - sqlFile:
+            path: 5-campaign_event_override.sql
+            relativeToChangelogFile: true
