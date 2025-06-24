@@ -61,3 +61,7 @@ If you want to learn more about building native executables, please consult <htt
 - YAML Configuration ([guide](https://quarkus.io/guides/config-yaml)): Use YAML to configure your Quarkus application
 - Liquibase ([guide](https://quarkus.io/guides/liquibase)): Handle your database schema migrations with Liquibase
 - JDBC Driver - PostgreSQL ([guide](https://quarkus.io/guides/datasource)): Connect to the PostgreSQL database via JDBC
+
+## Conventions
+
+When referring to entity attributes that represent a human readable label use the column name `title` instead of `name`. This keeps database names consistent with the Kotlin domain model.
