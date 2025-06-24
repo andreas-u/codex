@@ -58,6 +58,7 @@ org.fg.ttrpg
 ├── setting          (Setting, SettingObject)
 ├── genre            (Genre, Template)
 ├── campaign         (Campaign, CampaignObject)
+├── relationship     (Relationship, RelationshipType)
 ├── infra
 │   ├── merge        (JSON Patch / Merge helpers)
 │   └── validation   (schema cache, error mapping)
