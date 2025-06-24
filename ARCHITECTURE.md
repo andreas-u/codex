@@ -198,6 +198,10 @@ Merge rules live in `infra.merge` and may evolve from RFC 7396 *Merge Patch* to
 
 ## 14  Calendars & Timelines
 
+> **Planned extension:** Calendars and timeline features are not yet
+> implemented in this repository. This section sketches the intended
+> design for future work.
+
 A dedicated chronological layer lets GMs plot historical lore, schedule future sessions, and track campaign days without leaking calendar logic into object payloads. The design mirrors the **canon‑vs‑override** strategy already used for Setting & Campaign objects.
 
 ### 14.1  Core entities
