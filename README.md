@@ -75,6 +75,18 @@ PATCH /api/campaigns/{cid}/events/{eid} - apply an override
 GET  /api/campaigns/{cid}/timeline      - list events for a campaign
 ```
 
+Additional authorization endpoints use bearer tokens with a `userId` claim:
+
+```
+POST /api/roles                        - create a role
+GET  /api/roles                        - list roles
+POST /api/users/{uid}/roles/{rid}      - assign role to user
+DELETE /api/users/{uid}/roles/{rid}    - remove role
+GET  /api/users/{uid}/roles            - list user roles
+POST /api/grants                       - grant object permission
+GET  /api/grants/check                 - check permission
+```
+
 ## Conventions
 
 When referring to entity attributes that represent a human readable label use the column name `title` instead of `name`. This keeps database names consistent with the Kotlin domain model.

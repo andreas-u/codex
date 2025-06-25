@@ -6,19 +6,23 @@ import jakarta.ws.rs.Path
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.QueryParam
 import jakarta.ws.rs.core.MediaType
+import jakarta.ws.rs.NotFoundException
 import org.eclipse.microprofile.jwt.JsonWebToken
 import org.fg.ttrpg.common.dto.TemplateDTO
 import org.fg.ttrpg.setting.Template
 import org.fg.ttrpg.setting.TemplateService
+import org.fg.ttrpg.auth.UserRepository
 import java.util.UUID
 
 @Path("/api/templates")
 @Produces(MediaType.APPLICATION_JSON)
 class TemplateResource @Inject constructor(
     private val service: TemplateService,
-    private val jwt: JsonWebToken
+    private val jwt: JsonWebToken,
+    private val userRepo: UserRepository
 ) {
-    private fun gmId() = UUID.fromString(jwt.getClaim("gmId"))
+    private fun gmId() = userRepo.findById(UUID.fromString(jwt.getClaim("userId")))?.gm?.id
+        ?: throw NotFoundException()
 
     @GET
     fun list(

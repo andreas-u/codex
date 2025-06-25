@@ -36,6 +36,9 @@ open class IntegrationTestHelper {
     @Inject
     lateinit var userRepo: UserRepository
 
+    @Inject
+    lateinit var permissionRepo: org.fg.ttrpg.auth.PermissionRepository
+
     private val gmIds = mutableListOf<UUID>()
 
     @AfterEach
@@ -52,7 +55,7 @@ open class IntegrationTestHelper {
         }
         gmRepo.persist(gm)
         val user = User().apply {
-            this.id = UUID.randomUUID()
+            this.id = UUID.nameUUIDFromBytes("user-$id".toByteArray())
             username = "user-$id"
             this.gm = gm
         }
@@ -60,6 +63,9 @@ open class IntegrationTestHelper {
         gmIds.add(id)
         return gm
     }
+
+    fun getUserIdForGm(gmId: UUID): UUID =
+        userRepo.findByGmId(gmId)?.id ?: throw IllegalStateException("user not found")
 
     @Transactional
     open fun createSetting(id: UUID, gmId: UUID): Setting {

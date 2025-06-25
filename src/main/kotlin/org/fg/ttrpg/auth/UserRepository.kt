@@ -21,6 +21,15 @@ class UserRepository @Inject constructor(private val jdbi: Jdbi) {
                 .orElse(null)
         }
 
+    fun findByGmId(gmId: UUID): User? =
+        jdbi.withHandle<User?, Exception> { handle ->
+            handle.createQuery("SELECT id, username, email, gm_id FROM \"user\" WHERE gm_id = :gmId LIMIT 1")
+                .bind("gmId", gmId)
+                .map(UserMapper())
+                .findOne()
+                .orElse(null)
+        }
+
     fun persist(user: User) {
         jdbi.useHandle<Exception> { handle ->
             handle.createUpdate("INSERT INTO \"user\" (id, username, email, gm_id) VALUES (:id, :username, :email, :gmId)")

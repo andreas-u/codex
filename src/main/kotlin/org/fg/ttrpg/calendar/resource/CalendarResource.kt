@@ -13,6 +13,7 @@ import org.fg.ttrpg.setting.SettingObject
 import org.fg.ttrpg.setting.SettingService
 import org.fg.ttrpg.timeline.TimelineEvent
 import org.fg.ttrpg.timeline.TimelineService
+import org.fg.ttrpg.auth.UserRepository
 import java.util.*
 
 @Path("/api/calendars")
@@ -23,8 +24,10 @@ class CalendarResource @Inject constructor(
     private val settingService: SettingService,
     private val timelineService: TimelineService,
     private val jwt: JsonWebToken,
+    private val userRepo: UserRepository,
 ) {
-    private fun gmId() = UUID.fromString(jwt.getClaim("gmId"))
+    private fun gmId(): UUID =
+        userRepo.findById(UUID.fromString(jwt.getClaim("userId")))?.gm?.id ?: throw NotFoundException()
 
 
     @GET

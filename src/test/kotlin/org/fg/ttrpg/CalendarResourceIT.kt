@@ -17,12 +17,18 @@ import java.util.*
 class CalendarResourceIT : IntegrationTestHelper() {
 
     val gmId = UUID.fromString("00000000-0000-0000-0000-000000000010")
+    lateinit var userId: UUID
+
+    companion object {
+        const val USER_ID = "70cc0546-74bc-5e77-90a6-02b987a57811"
+    }
 
     lateinit var setting: Setting
 
     @BeforeEach
     fun setup() {
         createGm(gmId)
+        userId = UUID.fromString(USER_ID)
         setting = createSetting(UUID.randomUUID(), gmId)
     }
 
@@ -33,7 +39,7 @@ class CalendarResourceIT : IntegrationTestHelper() {
         claims = [
             Claim(key = "email", value = "user@gmail.com"),
             Claim(key = "sub", value = "userJwt"),
-            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000010")
+            Claim(key = "userId", value = USER_ID)
         ]
     )
     fun createCalendar_and_event() {

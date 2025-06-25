@@ -22,10 +22,16 @@ class CampaignEventResourceIT : IntegrationTestHelper() {
 
     val gmId = UUID.fromString("00000000-0000-0000-0000-000000000020")
     lateinit var setting: Setting
+    lateinit var userId: UUID
+
+    companion object {
+        const val USER_ID = "3fc0a458-2eb4-5bf8-9356-c05e36f4ff19"
+    }
 
     @BeforeEach
     fun setup() {
         createGm(gmId)
+        userId = UUID.fromString(USER_ID)
         setting = createSetting(UUID.randomUUID(), gmId)
     }
 
@@ -35,7 +41,7 @@ class CampaignEventResourceIT : IntegrationTestHelper() {
         claims = [
             Claim(key = "email", value = "user@gmail.com"),
             Claim(key = "sub", value = "userJwt"),
-            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000020")
+            Claim(key = "userId", value = USER_ID)
         ]
     )
     fun timeline_range_filters_events() {
@@ -58,7 +64,7 @@ class CampaignEventResourceIT : IntegrationTestHelper() {
         claims = [
             Claim(key = "email", value = "user@gmail.com"),
             Claim(key = "sub", value = "userJwt"),
-            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000020")
+            Claim(key = "userId", value = USER_ID)
         ]
     )
     fun override_event_patch() {
@@ -94,7 +100,7 @@ class CampaignEventResourceIT : IntegrationTestHelper() {
         claims = [
             Claim(key = "email", value = "user@gmail.com"),
             Claim(key = "sub", value = "userJwt"),
-            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000020")
+            Claim(key = "userId", value = USER_ID)
         ]
     )
     fun override_event_delete() {

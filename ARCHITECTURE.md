@@ -160,7 +160,7 @@ Merge rules live in `infra.merge` and may evolve from RFC 7396 *Merge Patch* to
 
 ## 9  Security & Multi‑Tenancy
 
-* **Auth** – Quarkus OIDC bearer tokens (Keycloak / Auth0).  Each request carries `gmId` in claims.
+* **Auth** – Quarkus OIDC bearer tokens (Keycloak / Auth0).  Each request carries `userId` in claims.
 * **Data isolation** – every `SELECT` and `UPDATE` clause filters by `gm_id`; JDBI queries bind the tenant id explicitly for each operation.
 * **Row Level Security (future)** – activate PostgreSQL RLS for defense‑in‑depth.
 
@@ -240,6 +240,13 @@ A dedicated chronological layer lets GMs plot historical lore, schedule future s
 | `POST /api/calendars/{id}/events`                 | Add world‑level event               | JSON body `TimelineEventDTO` |
 | `PATCH /api/campaigns/{cid}/events/{eid}`         | Override or delete in campaign      | JSON body `CampaignEventOverrideDTO` |
 | `GET /api/campaigns/{cid}/timeline?from=0&to=365` | Merged event list for range         | |
+| `POST /api/roles`                                 | Create role                        | JSON body `RoleDTO` |
+| `GET /api/roles`                                  | List roles                         | |
+| `POST /api/users/{uid}/roles/{rid}`               | Assign role to user                | |
+| `DELETE /api/users/{uid}/roles/{rid}`             | Remove role from user              | |
+| `GET /api/users/{uid}/roles`                      | List roles for user                | |
+| `POST /api/grants`                                | Grant object permission            | JSON body `GrantDTO` |
+| `GET /api/grants/check`                           | Check permission                   | |
 
 #### DTO Schemas
 
