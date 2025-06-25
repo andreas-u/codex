@@ -20,6 +20,15 @@ class PermissionRepository @Inject constructor(private val jdbi: Jdbi) {
                 .orElse(null)
         }
 
+    fun findByCode(code: String): Permission? =
+        jdbi.withHandle<Permission?, Exception> { handle ->
+            handle.createQuery("SELECT id, code FROM permission WHERE code = :code")
+                .bind("code", code)
+                .map(PermissionMapper())
+                .findOne()
+                .orElse(null)
+        }
+
     fun persist(permission: Permission) {
         jdbi.useHandle<Exception> { handle ->
             handle.createUpdate("INSERT INTO permission (id, code) VALUES (:id, :code)")

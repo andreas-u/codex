@@ -7,6 +7,7 @@ import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import org.eclipse.microprofile.jwt.JsonWebToken
 import org.fg.ttrpg.account.GMRepository
+import org.fg.ttrpg.auth.AuthorizationService
 import org.fg.ttrpg.calendar.CalendarService
 import org.fg.ttrpg.calendar.CalendarSystem
 import org.fg.ttrpg.calendar.resource.toDto
@@ -26,32 +27,34 @@ class SettingResource @Inject constructor(
     private val validator: org.fg.ttrpg.infra.validation.TemplateValidator,
     private val gmRepo: GMRepository,
     private val calendarService: CalendarService,
+    private val auth: AuthorizationService,
     private val jwt: JsonWebToken
 ) {
     private val mapper = ObjectMapper()
-    private fun gmId() = UUID.fromString(jwt.getClaim("gmId"))
+    private fun userId() = UUID.fromString(jwt.getClaim("gmId"))
 
     @GET
     fun list(): List<SettingDTO> =
-        service.listAll(gmId()).map { it.toDto() }
+        service.listAll(userId()).map { it.toDto() }
 
     @GET
     @Path("{id}")
     fun getById(@PathParam("id") id: UUID): SettingDTO {
-        val setting = service.findByIdForGm(id, gmId()) ?: throw NotFoundException()
+        val setting = service.findByIdForGm(id, userId()) ?: throw NotFoundException()
         return setting.toDto()
     }
 
     @POST
     @Transactional
     fun create(dto: SettingDTO): SettingDTO {
-        val gm = gmRepo.findById(gmId()) ?: throw NotFoundException()
+        val gm = gmRepo.findById(userId()) ?: throw NotFoundException()
         val entity = Setting().apply {
             title = dto.title
             description = dto.description
             this.gm = gm
         }
         service.persist(entity)
+        entity.id?.let { auth.grantFullPermission(userId(), it, userId()) }
         return entity.toDto()
     }
 
@@ -59,8 +62,8 @@ class SettingResource @Inject constructor(
     @Path("{id}/objects")
     @Transactional
     fun createObject(@PathParam("id") id: UUID, dto: SettingObjectDTO): SettingObjectDTO {
-        val setting = service.findByIdForGm(id, gmId()) ?: throw NotFoundException()
-        val template = dto.templateId?.let { templateRepo.findByIdForGm(it, gmId()) }
+        val setting = service.findByIdForGm(id, userId()) ?: throw NotFoundException()
+        val template = dto.templateId?.let { templateRepo.findByIdForGm(it, userId()) }
             ?: dto.templateId?.let { throw NotFoundException() }
         val obj = SettingObject().apply {
             slug = dto.slug
@@ -81,6 +84,7 @@ class SettingResource @Inject constructor(
             }
         }
         objectRepo.persist(obj)
+        obj.id?.let { auth.grantFullPermission(userId(), it, userId()) }
         return obj.toDto()
     }
 
@@ -89,7 +93,7 @@ class SettingResource @Inject constructor(
     @Path("{id}/calendars")
     @Transactional
     fun createCalendar(@PathParam("id") settingId: UUID, dto: CalendarDTO): CalendarDTO {
-        val setting = service.findByIdForGm(settingId, gmId()) ?: throw NotFoundException()
+        val setting = service.findByIdForGm(settingId, userId()) ?: throw NotFoundException()
         val system = CalendarSystem().apply {
             name = dto.name
             epochLabel = dto.epochLabel
@@ -98,6 +102,7 @@ class SettingResource @Inject constructor(
             this.setting = setting
         }
         calendarService.persist(system)
+        system.id?.let { auth.grantFullPermission(userId(), it, userId()) }
         return system.toDto()
     }
 }
