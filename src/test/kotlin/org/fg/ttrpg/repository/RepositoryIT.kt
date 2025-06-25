@@ -158,7 +158,7 @@ class RepositoryIT {
 
         val found = objectRepo.findByIdForGm(obj.id!!, gm.id!!)
         found?.slug shouldBe "slug"
-        found?.tags shouldBe listOf("foo", "bar")
+        found?.tags shouldBe listOf("bar", "foo")
     }
 
     @Test

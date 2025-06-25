@@ -11,6 +11,7 @@ class Campaign {
     var gm: org.fg.ttrpg.account.GM? = null
     var setting: org.fg.ttrpg.setting.Setting? = null
     var objects: MutableList<CampaignObject> = mutableListOf()
+    var calendar: org.fg.ttrpg.calendar.CalendarSystem? = null
 }
 
 enum class CampaignStatus { PLANNING, ACTIVE, COMPLETE }

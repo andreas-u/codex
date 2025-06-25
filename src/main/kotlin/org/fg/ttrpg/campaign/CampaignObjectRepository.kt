@@ -105,7 +105,7 @@ class CampaignObjectRepository @Inject constructor(private val jdbi: Jdbi) {
             settingObject = SettingObject().apply { id = rs.getObject("setting_object_id", UUID::class.java) }
             gm = GM().apply { id = rs.getObject("gm_id", UUID::class.java) }
             template = Template().apply { id = rs.getObject("template_id", UUID::class.java) }
-            overrideMode = rs.getString("override_mode")
+            overrideMode = OverrideMode.entries.find { it.name == (rs.getString("override_mode") ?: "") }
             payload = rs.getString("payload")
             createdAt = rs.getTimestamp("created_at").toInstant()
         }

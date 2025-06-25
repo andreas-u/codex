@@ -101,6 +101,7 @@ open class IntegrationTestHelper {
             startedOn = Instant.now()
             this.gm = gm
             this.setting = setting
+            this.calendar = null // Calendar can be set later
         }
         campaignRepo.persist(campaign)
         return campaign

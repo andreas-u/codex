@@ -37,7 +37,7 @@ A concise, self‑contained reference for architects and developers building the
 | **GM**             | Account boundary / tenant        | `id`, `email`, `username`, auth fields                                                   |
 | **Setting**        | Cohesive world bible             | `id`, `gmId`, `title`, `description`, `createdAt`                                       |
 | **Genre**          | Flavour pack attached to Setting | `id`, `settingId`, `code` (`"scifi"`), `name`                                            |
-| **Template**       | Declarative schema for objects   | `id`, `genreId`, `type`, `jsonSchema` (text)                                             |
+| **Template**       | Declarative schema for objects   | `id`, `genreId`, `type`, `jsonSchema` (JSONB)                                             |
 | **SettingObject**  | Canon facts                      | `id`, `settingId`, `templateId?`, `slug`, `payload` (JSONB)                             |
 | **SettingObjectTag** | Tag assigned to a SettingObject | `settingObjectId`, `tag` |
 | **Campaign**       | Playthrough within Setting       | `id`, `settingId`, `title`, `status`, `startedOn`                                        |

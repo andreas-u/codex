@@ -15,15 +15,15 @@ SELECT so.id,
        so.title,
        so.description,
        so.created_at,
-       c.id AS campaign_id,
+       c.id  AS campaign_id,
        so.id AS setting_object_id,
        so.gm_id,
        so.template_id,
-       NULL AS override_mode,
+       NULL  AS override_mode,
        so.payload
 FROM campaign c
-JOIN setting_object so ON so.setting_id = c.setting_id
-WHERE NOT EXISTS (
-    SELECT 1 FROM campaign_object co2
-    WHERE co2.campaign_id = c.id AND co2.setting_object_id = so.id
-);
+         JOIN setting_object so ON so.setting_id = c.setting_id
+WHERE NOT EXISTS (SELECT 1
+                  FROM campaign_object co2
+                  WHERE co2.campaign_id = c.id
+                    AND co2.setting_object_id = so.id);

@@ -10,7 +10,7 @@ class CampaignObject {
     var campaign: Campaign? = null
     var settingObject: org.fg.ttrpg.setting.SettingObject? = null
     var template: org.fg.ttrpg.setting.Template? = null
-    var overrideMode: String? = null
+    var overrideMode: OverrideMode? = null
     /** JSON payload storing object data */
     var payload: String? = null
     var createdAt: Instant? = null
