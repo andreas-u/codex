@@ -5,7 +5,10 @@ import jakarta.inject.Inject
 import java.util.UUID
 
 @ApplicationScoped
-class TimelineService @Inject constructor(private val repository: TimelineEventRepository) {
+class TimelineService @Inject constructor(
+    private val repository: TimelineEventRepository,
+    private val usageRepository: TimelineObjectUsageRepository,
+) {
     fun listByCalendar(calendarId: UUID): List<TimelineEvent> =
         repository.listByCalendar(calendarId)
 
@@ -17,4 +20,10 @@ class TimelineService @Inject constructor(private val repository: TimelineEventR
     fun persist(event: TimelineEvent) {
         repository.persist(event)
     }
+
+    fun listObjectsForEvent(eventId: UUID): List<TimelineObjectUsage> =
+        usageRepository.listObjectsForEvent(eventId)
+
+    fun listEventsForObject(objectId: UUID): List<TimelineObjectUsage> =
+        usageRepository.listEventsForObject(objectId)
 }
