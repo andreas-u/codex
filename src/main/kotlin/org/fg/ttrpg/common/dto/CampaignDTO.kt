@@ -5,6 +5,7 @@ import java.util.UUID
 data class CampaignDTO(
     val id: UUID?,
     val title: String,
+    val status: String,
     val gmId: UUID,
     val settingId: UUID
 )

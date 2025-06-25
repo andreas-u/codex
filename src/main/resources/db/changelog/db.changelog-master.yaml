@@ -34,3 +34,17 @@ databaseChangeLog:
         - sqlFile:
             path: 5-campaign_event_override.sql
             relativeToChangelogFile: true
+  - changeSet:
+      id: 6-campaign-status
+      author: codex
+      changes:
+        - sqlFile:
+            path: 6-campaign_status.sql
+            relativeToChangelogFile: true
+  - changeSet:
+      id: 7-campaign-object-view
+      author: codex
+      changes:
+        - sqlFile:
+            path: 7-campaign_object_view.sql
+            relativeToChangelogFile: true

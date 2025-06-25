@@ -1,13 +1,16 @@
 package org.fg.ttrpg.calendar
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
+import org.fg.ttrpg.infra.calendar.CalendarMath
+import org.fg.ttrpg.infra.validation.MonthSchemaValidator
 import java.util.UUID
 
 @ApplicationScoped
-class CalendarService @Inject constructor(private val repository: CalendarSystemRepository) {
-    private val mapper = ObjectMapper()
+class CalendarService @Inject constructor(
+    private val repository: CalendarSystemRepository,
+    private val monthValidator: MonthSchemaValidator,
+) {
 
     fun listBySetting(settingId: UUID): List<CalendarSystem> =
         repository.listBySetting(settingId)
@@ -18,24 +21,15 @@ class CalendarService @Inject constructor(private val repository: CalendarSystem
         repository.findByIdForSetting(id, settingId)
 
     fun persist(system: CalendarSystem) {
+        system.months?.let { monthValidator.validate(it) }
         repository.persist(system)
     }
 
     /** Calculate the total number of days in one year. */
     fun totalDays(system: CalendarSystem): Int =
-        parseMonths(system).sumOf { it.days }
+        CalendarMath.totalDays(system.months)
 
     /** Validate that a day-of-year exists in the calendar. */
-    fun isValidDay(system: CalendarSystem, day: Int): Boolean {
-        val total = totalDays(system)
-        return day in 1..total
-    }
-
-    private data class Month(val name: String, val days: Int)
-
-    private fun parseMonths(system: CalendarSystem): List<Month> =
-        runCatching {
-            val node = mapper.readTree(system.months ?: "[]")
-            node.map { Month(it.get("name").asText(), it.get("days").asInt()) }
-        }.getOrDefault(emptyList())
+    fun isValidDay(system: CalendarSystem, day: Int): Boolean =
+        CalendarMath.isValidDay(system.months, day)
 }
