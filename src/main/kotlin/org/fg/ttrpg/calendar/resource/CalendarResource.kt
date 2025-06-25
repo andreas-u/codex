@@ -15,7 +15,7 @@ import org.fg.ttrpg.timeline.TimelineEvent
 import org.fg.ttrpg.timeline.TimelineService
 import java.util.*
 
-@Path("/api")
+@Path("/api/calendars")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 class CalendarResource @Inject constructor(
@@ -28,7 +28,7 @@ class CalendarResource @Inject constructor(
 
 
     @GET
-    @Path("/calendars/{id}")
+    @Path("{id}")
     fun getCalendar(@PathParam("id") id: UUID): CalendarDTO {
         val calendar = calendarService.findById(id) ?: throw NotFoundException()
         settingService.findByIdForGm(calendar.setting?.id ?: error("Setting is null"), gmId())
@@ -36,8 +36,15 @@ class CalendarResource @Inject constructor(
         return calendar.toDto()
     }
 
+    @GET
+    @Path("{id}/events/{eventId}")
+    fun getCalendar(@PathParam("id") id: UUID, @PathParam("eventId") eventId: UUID): TimelineEventDTO {
+        val event = timelineService.findByIdForCalendar(eventId,id) ?: throw NotFoundException()
+        return event.toDto()
+    }
+
     @POST
-    @Path("/calendars/{id}/events")
+    @Path("{id}/events")
     @Transactional
     fun createEvent(@PathParam("id") calendarId: UUID, dto: TimelineEventDTO): TimelineEventDTO {
         val calendar = calendarService.findById(calendarId) ?: throw NotFoundException()
