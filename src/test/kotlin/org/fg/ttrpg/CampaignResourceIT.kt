@@ -203,6 +203,7 @@ class CampaignResourceIT : IntegrationTestHelper() {
             .then().statusCode(200)
             .body("id", equalTo(campaign.id.toString()))
             .body("title", equalTo("camp"))
+            .body("status", equalTo("ACTIVE"))
             .body("gmId", equalTo(gmId.toString()))
             .body("settingId", equalTo(setting.id.toString()))
     }

@@ -67,6 +67,12 @@ class CampaignResource @Inject constructor(
     }
 }
 
-private fun Campaign.toDto() = CampaignDTO(id, title ?: "", gm?.id ?: error("GM is null"), setting?.id ?: error("Setting is null"))
+private fun Campaign.toDto() = CampaignDTO(
+    id,
+    title ?: "",
+    status?.name ?: "",
+    gm?.id ?: error("GM is null"),
+    setting?.id ?: error("Setting is null")
+)
 private fun CampaignObject.toDto() =
     CampaignObjectDTO(id, title ?: "", description, campaign?.id ?: error("Campaign is null"), settingObject?.id ?: error("SettingObject is null"))

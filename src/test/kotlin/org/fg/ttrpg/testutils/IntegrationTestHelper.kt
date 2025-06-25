@@ -97,6 +97,7 @@ open class IntegrationTestHelper {
         val campaign = Campaign().apply {
             this.id = id
             title = "camp"
+            status = org.fg.ttrpg.campaign.CampaignStatus.ACTIVE
             startedOn = Instant.now()
             this.gm = gm
             this.setting = setting
