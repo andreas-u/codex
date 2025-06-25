@@ -48,3 +48,10 @@ databaseChangeLog:
         - sqlFile:
             path: 7-campaign_object_view.sql
             relativeToChangelogFile: true
+  - changeSet:
+      id: 8-timeline-object-view
+      author: codex
+      changes:
+        - sqlFile:
+            path: 8-timeline_object_view.sql
+            relativeToChangelogFile: true
