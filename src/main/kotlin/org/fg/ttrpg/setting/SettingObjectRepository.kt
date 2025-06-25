@@ -11,42 +11,61 @@ import java.time.Instant
 import java.util.UUID
 
 @ApplicationScoped
-class SettingObjectRepository @Inject constructor(private val jdbi: Jdbi) {
+class SettingObjectRepository @Inject constructor(
+    private val jdbi: Jdbi,
+    private val tagRepo: SettingObjectTagRepository,
+) {
 
     fun listBySettingAndGm(settingId: UUID, gmId: UUID): List<SettingObject> =
         jdbi.withHandle<List<SettingObject>, Exception> { handle ->
-            handle.createQuery("SELECT id, slug, title, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE setting_id = :settingId AND gm_id = :gmId")
+            handle.createQuery(
+                "SELECT id, slug, title, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE setting_id = :settingId AND gm_id = :gmId"
+            )
                 .bind("settingId", settingId)
                 .bind("gmId", gmId)
                 .map(SettingObjectMapper())
                 .list()
+        }.onEach { obj ->
+            obj.id?.let { obj.tags = tagRepo.listBySettingObject(it).toMutableList() }
         }
 
     fun listByGm(gmId: UUID): List<SettingObject> =
         jdbi.withHandle<List<SettingObject>, Exception> { handle ->
-            handle.createQuery("SELECT id, slug, title, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE gm_id = :gmId")
+            handle.createQuery(
+                "SELECT id, slug, title, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE gm_id = :gmId"
+            )
                 .bind("gmId", gmId)
                 .map(SettingObjectMapper())
                 .list()
+        }.onEach { obj ->
+            obj.id?.let { obj.tags = tagRepo.listBySettingObject(it).toMutableList() }
         }
 
     fun findById(id: UUID): SettingObject? =
         jdbi.withHandle<SettingObject?, Exception> { handle ->
-            handle.createQuery("SELECT id, slug, title, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE id = :id")
+            handle.createQuery(
+                "SELECT id, slug, title, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE id = :id"
+            )
                 .bind("id", id)
                 .map(SettingObjectMapper())
                 .findOne()
                 .orElse(null)
+        }?.also { obj ->
+            obj.id?.let { obj.tags = tagRepo.listBySettingObject(it).toMutableList() }
         }
 
     fun findByIdForGm(id: UUID, gmId: UUID): SettingObject? =
         jdbi.withHandle<SettingObject?, Exception> { handle ->
-            handle.createQuery("SELECT id, slug, title, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE id = :id AND gm_id = :gmId")
+            handle.createQuery(
+                "SELECT id, slug, title, description, payload, setting_id, template_id, gm_id, created_at FROM setting_object WHERE id = :id AND gm_id = :gmId"
+            )
                 .bind("id", id)
                 .bind("gmId", gmId)
                 .map(SettingObjectMapper())
                 .findOne()
                 .orElse(null)
+        }?.also { obj ->
+            obj.id?.let { obj.tags = tagRepo.listBySettingObject(it).toMutableList() }
         }
 
     fun persist(obj: SettingObject) {
@@ -57,7 +76,9 @@ class SettingObjectRepository @Inject constructor(private val jdbi: Jdbi) {
             obj.createdAt = java.time.Instant.now()
         }
         jdbi.useHandle<Exception> { handle ->
-            handle.createUpdate("INSERT INTO setting_object (id, slug, title, description, payload, setting_id, template_id, gm_id, created_at) VALUES (:id, :slug, :title, :description, :payload::jsonb, :settingId, :templateId, :gmId, :createdAt)")
+            handle.createUpdate(
+                "INSERT INTO setting_object (id, slug, title, description, payload, setting_id, template_id, gm_id, created_at) VALUES (:id, :slug, :title, :description, :payload::jsonb, :settingId, :templateId, :gmId, :createdAt)"
+            )
                 .bind("id", obj.id)
                 .bind("slug", obj.slug)
                 .bind("title", obj.title)
@@ -69,7 +90,7 @@ class SettingObjectRepository @Inject constructor(private val jdbi: Jdbi) {
                 .bind("createdAt", obj.createdAt)
                 .execute()
         }
-        // tags are ignored for brevity
+        obj.id?.let { tagRepo.replaceForObject(it, obj.tags) }
     }
 
     private class SettingObjectMapper : RowMapper<SettingObject> {
