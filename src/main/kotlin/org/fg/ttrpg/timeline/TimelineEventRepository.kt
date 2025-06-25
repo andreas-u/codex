@@ -60,7 +60,7 @@ class TimelineEventRepository @Inject constructor(private val jdbi: Jdbi) {
                 .bind("description", event.description)
                 .bind("startDay", event.startDay)
                 .bind("endDay", event.endDay)
-                .bind("objectRefs", event.objectRefs.takeIf { it.isNotEmpty() }?.toTypedArray())
+                .bind("objectRefs", event.objectRefs.takeIf { it.isNotEmpty() }?.map { it.id }?.toTypedArray())
                 .bind("tags", event.tags.takeIf { it.isNotEmpty() }?.toTypedArray())
                 .execute()
         }
