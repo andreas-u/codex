@@ -55,3 +55,10 @@ databaseChangeLog:
         - sqlFile:
             path: 8-timeline_object_view.sql
             relativeToChangelogFile: true
+  - changeSet:
+      id: 9-auth
+      author: codex
+      changes:
+        - sqlFile:
+            path: 9-auth.sql
+            relativeToChangelogFile: true
