@@ -10,6 +10,8 @@ import org.fg.ttrpg.campaign.Campaign
 import org.fg.ttrpg.campaign.CampaignRepository
 import org.fg.ttrpg.common.dto.CalendarDTO
 import org.fg.ttrpg.common.dto.TimelineEventDTO
+import org.fg.ttrpg.auth.User
+import org.fg.ttrpg.auth.UserRepository
 import org.fg.ttrpg.setting.*
 import org.junit.jupiter.api.AfterEach
 import java.time.Instant
@@ -31,6 +33,9 @@ open class IntegrationTestHelper {
     @Inject
     lateinit var genreRepo: org.fg.ttrpg.genre.GenreRepository
 
+    @Inject
+    lateinit var userRepo: UserRepository
+
     private val gmIds = mutableListOf<UUID>()
 
     @AfterEach
@@ -46,6 +51,12 @@ open class IntegrationTestHelper {
             username = "gm-$id"
         }
         gmRepo.persist(gm)
+        val user = User().apply {
+            this.id = UUID.randomUUID()
+            username = "user-$id"
+            this.gm = gm
+        }
+        userRepo.persist(user)
         gmIds.add(id)
         return gm
     }
