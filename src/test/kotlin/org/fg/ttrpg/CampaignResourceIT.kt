@@ -95,11 +95,20 @@ class CampaignResourceIT : IntegrationTestHelper() {
 
     val testGmId1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val testGmId2 = UUID.fromString("00000000-0000-0000-0000-000000000002")
+    lateinit var userId1: UUID
+    lateinit var userId2: UUID
+
+    companion object {
+        const val USER_ID1 = "d5bbc73c-1e43-5cd6-919c-af383f4fe05a"
+        const val USER_ID2 = "750be2fc-07b4-5742-8ef5-722fb199ab95"
+    }
 
     @BeforeEach
     fun setupGm() {
         createGm(testGmId1)
         createGm(testGmId2)
+        userId1 = UUID.fromString(USER_ID1)
+        userId2 = UUID.fromString(USER_ID2)
     }
 
 
@@ -109,7 +118,7 @@ class CampaignResourceIT : IntegrationTestHelper() {
         claims = [
             Claim(key = "email", value = "user@gmail.com"),
             Claim(key = "sub", value = "userJwt"),
-            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+            Claim(key = "userId", value = USER_ID1)
         ]
     )
     fun patchObject_success() {
@@ -137,7 +146,7 @@ class CampaignResourceIT : IntegrationTestHelper() {
         claims = [
             Claim(key = "email", value = "user@gmail.com"),
             Claim(key = "sub", value = "userJwt"),
-            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+            Claim(key = "userId", value = USER_ID1)
         ]
     )
     fun patchObject_validationFailure() {
@@ -165,7 +174,7 @@ class CampaignResourceIT : IntegrationTestHelper() {
         claims = [
             Claim(key = "email", value = "user@gmail.com"),
             Claim(key = "sub", value = "userJwt"),
-            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000002")
+            Claim(key = "userId", value = USER_ID2)
         ]
     )
     fun tenantIsolation() {
@@ -190,7 +199,7 @@ class CampaignResourceIT : IntegrationTestHelper() {
         claims = [
             Claim(key = "email", value = "user@gmail.com"),
             Claim(key = "sub", value = "userJwt"),
-            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+            Claim(key = "userId", value = USER_ID1)
         ]
     )
     fun getCampaign_success() {
@@ -214,7 +223,7 @@ class CampaignResourceIT : IntegrationTestHelper() {
         claims = [
             Claim(key = "email", value = "user@gmail.com"),
             Claim(key = "sub", value = "userJwt"),
-            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+            Claim(key = "userId", value = USER_ID1)
         ]
     )
     fun getCampaign_notFound() {
@@ -231,7 +240,7 @@ class CampaignResourceIT : IntegrationTestHelper() {
         claims = [
             Claim(key = "email", value = "user@gmail.com"),
             Claim(key = "sub", value = "userJwt"),
-            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+            Claim(key = "userId", value = USER_ID1)
         ]
     )
     fun patchObject_noTemplateUsesSettingObject() {
@@ -256,7 +265,7 @@ class CampaignResourceIT : IntegrationTestHelper() {
         claims = [
             Claim(key = "email", value = "user@gmail.com"),
             Claim(key = "sub", value = "userJwt"),
-            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+            Claim(key = "userId", value = USER_ID1)
         ]
     )
     fun patchObject_campaignNotFound() {

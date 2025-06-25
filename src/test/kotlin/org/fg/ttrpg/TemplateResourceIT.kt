@@ -15,10 +15,16 @@ import java.util.*
 class TemplateResourceIT : IntegrationTestHelper() {
 
     val gmId = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    lateinit var userId: UUID
+
+    companion object {
+        const val USER_ID = "d5bbc73c-1e43-5cd6-919c-af383f4fe05a"
+    }
 
     @BeforeEach
     fun setup() {
         createGm(gmId)
+        userId = UUID.fromString(USER_ID)
     }
 
 
@@ -28,7 +34,7 @@ class TemplateResourceIT : IntegrationTestHelper() {
         claims = [
             Claim(key = "email", value = "user@gmail.com"),
             Claim(key = "sub", value = "userJwt"),
-            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+            Claim(key = "userId", value = USER_ID)
         ]
     )
     fun listByGenre() {
@@ -47,7 +53,7 @@ class TemplateResourceIT : IntegrationTestHelper() {
         claims = [
             Claim(key = "email", value = "user@gmail.com"),
             Claim(key = "sub", value = "userJwt"),
-            Claim(key = "gmId", value = "00000000-0000-0000-0000-000000000001")
+            Claim(key = "userId", value = USER_ID)
         ]
     )
     fun listByType() {

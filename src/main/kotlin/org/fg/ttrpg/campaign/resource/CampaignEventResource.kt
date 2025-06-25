@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import org.eclipse.microprofile.jwt.JsonWebToken
+import org.fg.ttrpg.auth.UserRepository
 import org.fg.ttrpg.calendar.CalendarService
 import org.fg.ttrpg.campaign.*
 import org.fg.ttrpg.common.dto.CampaignEventOverrideDTO
@@ -26,9 +27,11 @@ class CampaignEventResource @Inject constructor(
     private val timelineService: TimelineService,
     private val settingService: SettingService,
     private val jwt: JsonWebToken,
+    private val userRepo: UserRepository,
 ) {
     private val mapper = ObjectMapper()
-    private fun gmId() = UUID.fromString(jwt.getClaim("gmId"))
+    private fun gmId(): UUID =
+        userRepo.findById(UUID.fromString(jwt.getClaim("userId")))?.gm?.id ?: throw NotFoundException()
 
     @PATCH
     @Path("{cid}/events/{eid}")

@@ -11,6 +11,13 @@ import java.util.UUID
 @ApplicationScoped
 class RoleRepository @Inject constructor(private val jdbi: Jdbi) {
 
+    fun listAll(): List<Role> =
+        jdbi.withHandle<List<Role>, Exception> { handle ->
+            handle.createQuery("SELECT id, code FROM role")
+                .map(RoleMapper())
+                .list()
+        }
+
     fun findById(id: UUID): Role? =
         jdbi.withHandle<Role?, Exception> { handle ->
             handle.createQuery("SELECT id, code FROM role WHERE id = :id")

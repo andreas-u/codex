@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import org.eclipse.microprofile.jwt.JsonWebToken
+import org.fg.ttrpg.auth.UserRepository
 import org.fg.ttrpg.campaign.Campaign
 import org.fg.ttrpg.campaign.CampaignObject
 import org.fg.ttrpg.campaign.CampaignObjectRepository
@@ -24,10 +25,12 @@ class CampaignResource @Inject constructor(
     private val objectRepo: CampaignObjectRepository,
     private val merge: MergeService,
     private val validator: TemplateValidator,
-    private val jwt: JsonWebToken
+    private val jwt: JsonWebToken,
+    private val userRepo: UserRepository
 ) {
     private val mapper = ObjectMapper()
-    private fun gmId() = UUID.fromString(jwt.getClaim("gmId"))
+    private fun gmId(): UUID =
+        userRepo.findById(UUID.fromString(jwt.getClaim("userId")))?.gm?.id ?: throw NotFoundException()
 
     @GET
     @Path("{id}")
