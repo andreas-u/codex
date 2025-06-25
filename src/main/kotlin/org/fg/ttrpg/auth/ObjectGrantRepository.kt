@@ -3,6 +3,7 @@ package org.fg.ttrpg.auth
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import org.jdbi.v3.core.Jdbi
+import java.util.UUID
 
 @ApplicationScoped
 class ObjectGrantRepository @Inject constructor(private val jdbi: Jdbi) {
@@ -22,4 +23,20 @@ class ObjectGrantRepository @Inject constructor(private val jdbi: Jdbi) {
                 .execute()
         }
     }
+
+    fun hasPermission(userId: UUID, objectId: UUID, code: String): Boolean =
+        jdbi.withHandle<Boolean, Exception> { handle ->
+            handle.createQuery(
+                """
+                SELECT COUNT(*) FROM object_grant og
+                JOIN permission p ON og.permission_id = p.id
+                WHERE og.user_id = :userId AND og.object_id = :objectId AND p.code = :code
+                """
+            )
+                .bind("userId", userId)
+                .bind("objectId", objectId)
+                .bind("code", code)
+                .mapTo(Int::class.java)
+                .one() > 0
+        }
 }
