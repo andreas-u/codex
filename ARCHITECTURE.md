@@ -38,7 +38,8 @@ A concise, self‑contained reference for architects and developers building the
 | **Setting**        | Cohesive world bible             | `id`, `gmId`, `title`, `description`, `createdAt`                                       |
 | **Genre**          | Flavour pack attached to Setting | `id`, `settingId`, `code` (`"scifi"`), `name`                                            |
 | **Template**       | Declarative schema for objects   | `id`, `genreId`, `type`, `jsonSchema` (text)                                             |
-| **SettingObject**  | Canon facts                      | `id`, `settingId`, `templateId?`, `slug`, `payload` (JSONB), `tags[]`                    |
+| **SettingObject**  | Canon facts                      | `id`, `settingId`, `templateId?`, `slug`, `payload` (JSONB)                             |
+| **SettingObjectTag** | Tag assigned to a SettingObject | `settingObjectId`, `tag` |
 | **Campaign**       | Playthrough within Setting       | `id`, `settingId`, `title`, `status`, `startedOn`                                        |
 | **CampaignObject** | Override or new object           | `id`, `campaignId`, `settingObjectId?`, `templateId?`, `overrideMode`, `payload` (JSONB) |
 
@@ -59,6 +60,8 @@ org.fg.ttrpg
 ├── setting          (Setting, SettingObject)
 ├── genre            (Genre, Template)
 ├── campaign         (Campaign, CampaignObject)
+├── calendar         (CalendarSystem)
+├── timeline         (TimelineEvent)
 ├── relationship     (Relationship, RelationshipType)
 ├── infra
 │   ├── merge        (JSON Patch / Merge helpers)
@@ -66,7 +69,7 @@ org.fg.ttrpg
 └── common           (DTOs, mappers, util)
 ```
 
-Each bounded‑context package is split into **entity → repository → service → resource** layers.  Cross‑cutting utilities sit under `infra`.
+Most packages follow an **entity → repository** foundation.  Service and REST resource layers appear only where needed (e.g. `setting`, `campaign`, `calendar`, `timeline`), while lightweight modules such as `account` and `relationship` expose only entities and repositories.  Cross‑cutting utilities sit under `infra`.
 
 ---
 
@@ -89,13 +92,18 @@ Each bounded‑context package is split into **entity → repository → servi
       setting_id  UUID REFERENCES setting(id),
       template_id UUID REFERENCES template(id),
       slug        TEXT UNIQUE,
-      payload     JSONB,
-      tags        TEXT[]
+      payload     JSONB
+  );
+
+  CREATE TABLE setting_object_tags (
+      setting_object_id UUID REFERENCES setting_object(id) ON DELETE CASCADE,
+      tag TEXT NOT NULL
   );
   ```
 * **Indexes**
 
-    * `GIN` index on `payload` for full‑text / tag searches.
+    * `GIN` index on `payload` for full‑text searches.
+    * B‑tree index on `setting_object_tags.tag` for quick filtering.
     * Composite `UNION` view to list merged campaign objects efficiently.
 * **Audit** (optional MVP+) – triggers populate `<entity>_revision` tables capturing `version`, `changedBy`, `payload`.
 
@@ -153,7 +161,7 @@ Merge rules live in `infra.merge` and may evolve from RFC 7396 *Merge Patch* to
 ## 9  Security & Multi‑Tenancy
 
 * **Auth** – Quarkus OIDC bearer tokens (Keycloak / Auth0).  Each request carries `gmId` in claims.
-* **Data isolation** – every `SELECT` and `UPDATE` clause filters by `gm_id`; Panache `@TenantId` helper ensures compile‑time policy.
+* **Data isolation** – every `SELECT` and `UPDATE` clause filters by `gm_id`; JDBI queries bind the tenant id explicitly for each operation.
 * **Row Level Security (future)** – activate PostgreSQL RLS for defense‑in‑depth.
 
 ---
@@ -173,7 +181,7 @@ Merge rules live in `infra.merge` and may evolve from RFC 7396 *Merge Patch* to
 
 * **CI** – GitHub Actions: build, unit tests, JDK 21, cache Gradle.
 * **Container** – Jib builds scratch‑based OCI image.
-* **Database migration** – `quarkus.flyway` runs on pod start; Liquibase changelogs are backward‑compatible.
+* **Database migration** – `quarkus.liquibase` runs on pod start; changelogs remain backward‑compatible.
 * **Runtime** – Kubernetes or Fly.io; autoscale on CPU.
 * **Observability** – Micrometer -> Prometheus + Grafana; OpenTelemetry tracing to Jaeger.
 
@@ -211,7 +219,7 @@ A dedicated chronological layer lets GMs plot historical lore, schedule future s
 | Entity                        | Purpose                                         | Key Attributes                                                                                                                    |
 | ----------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | **CalendarSystem**            | Defines how dates are measured in a Setting.    | `id`, `settingId`, `name`, `epochLabel` (e.g., "AW"), `months` (JSONB array with `name`, `days`), `leapRule` (JSONB), `createdAt` |
-| **TimelineEvent**             | Canon event in the world.                       | `id`, `calendarId`, `title`, `description`, `startDay` (INT), `endDay?` (INT), `objectRefs` (BIGINT\[]), `tags` (TEXT\[])         |
+| **TimelineEvent**             | Canon event in the world.                       | `id`, `calendarId`, `title`, `description`, `startDay` (INT), `endDay?` (INT), `objectRefs` (UUID[]), `tags` (TEXT\[])         |
 | **EventLink** *(optional v2)* | Relates events causally or hierarchically.      | `id`, `sourceEvent`, `targetEvent`, `type` (`CAUSES`, `PARALLEL`, `CHILD_OF`), `properties` (JSONB)                               |
 | **CampaignEventOverride**     | Campaign‑specific add/patch/delete of an event. | `id`, `campaignId`, `baseEventId?`, `overrideMode`, `payload` (JSONB)                                                             |
 
@@ -284,8 +292,8 @@ A dedicated chronological layer lets GMs plot historical lore, schedule future s
 
 ```sql
 CREATE TABLE calendar_system (
-    id          BIGSERIAL PRIMARY KEY,
-    setting_id  BIGINT REFERENCES setting(id),
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    setting_id  UUID REFERENCES setting(id),
     name        TEXT NOT NULL,
     epoch_label TEXT,
     months      JSONB NOT NULL,
@@ -294,13 +302,13 @@ CREATE TABLE calendar_system (
 );
 
 CREATE TABLE timeline_event (
-    id          BIGSERIAL PRIMARY KEY,
-    calendar_id BIGINT REFERENCES calendar_system(id),
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    calendar_id UUID REFERENCES calendar_system(id),
     title       TEXT NOT NULL,
     description TEXT,
     start_day   INT NOT NULL,
     end_day     INT,
-    object_refs BIGINT[],
+    object_refs UUID[],
     tags        TEXT[]
 );
 
