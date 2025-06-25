@@ -152,11 +152,13 @@ class RepositoryIT {
             this.setting = setting
             this.template = template
             this.gm = gm
+            tags = mutableListOf("foo", "bar")
         }
         objectRepo.persist(obj)
 
         val found = objectRepo.findByIdForGm(obj.id!!, gm.id!!)
         found?.slug shouldBe "slug"
+        found?.tags shouldBe listOf("foo", "bar")
     }
 
     @Test
